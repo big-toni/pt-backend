@@ -5,6 +5,8 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"os"
+	aa  "github.com/gorilla/http"
 )
 
 // Define our struct
@@ -16,15 +18,16 @@ func main() {
 	r := mux.NewRouter()
 
 	amw := authenticationMiddleware{}
-	a := make(map[string]string);
+	a := make(map[string]string)
 	amw.tokenUsers = a
 	amw.Populate()
 
-	r.Use(amw.Middleware)
+	// r.Use(amw.Middleware)
 	r.Use(loggingMiddleware)
 
 	r.HandleFunc("/", RootHandler)
 	r.HandleFunc("/user/{id:[0-9]+}/", UserHandler)
+	r.HandleFunc("/parcel/", ParcelHandler)
 
 	http.ListenAndServe(":3000", r)
 }
@@ -73,4 +76,13 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "User: %v\n", vars["id"])
+}
+
+func ParcelHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	if _, err := aa.Get(os.Stdout, "http://www.gorillatoolkit.org/"); err != nil {
+		log.Fatalf("could not fetch: %v", err)
+	}
+
+	fmt.Fprintf(w, "Parcel data")
 }
