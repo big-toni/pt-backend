@@ -1,12 +1,10 @@
 package main
 
 import (
-	"fmt"
+	handlers "./handlers"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"os"
-	aa  "github.com/gorilla/http"
 )
 
 // Define our struct
@@ -22,12 +20,13 @@ func main() {
 	amw.tokenUsers = a
 	amw.Populate()
 
+	// TODO: currently disabled
 	// r.Use(amw.Middleware)
 	r.Use(loggingMiddleware)
 
-	r.HandleFunc("/", RootHandler)
-	r.HandleFunc("/user/{id:[0-9]+}/", UserHandler)
-	r.HandleFunc("/parcel/", ParcelHandler)
+	r.HandleFunc("/", handlers.RootHandler)
+	r.HandleFunc("/user/{id:[0-9]+}/", handlers.UserHandler)
+	r.HandleFunc("/parcel/", handlers.ParcelHandler)
 
 	http.ListenAndServe(":3000", r)
 }
@@ -65,24 +64,4 @@ func (amw *authenticationMiddleware) Middleware(next http.Handler) http.Handler 
 			http.Error(w, "Forbidden", http.StatusForbidden)
 		}
 	})
-}
-
-func RootHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Parcels")
-}
-
-func UserHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "User: %v\n", vars["id"])
-}
-
-func ParcelHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	if _, err := aa.Get(os.Stdout, "http://www.gorillatoolkit.org/"); err != nil {
-		log.Fatalf("could not fetch: %v", err)
-	}
-
-	fmt.Fprintf(w, "Parcel data")
 }
