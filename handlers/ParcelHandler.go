@@ -1,21 +1,16 @@
 package handlers
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-	"os"
-	gorillaHttp  "github.com/gorilla/http"
 	services "../services"
+	"fmt"
+	"github.com/gorilla/mux"
+	"net/http"
 )
 
 func ParcelHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	if _, err := gorillaHttp.Get(os.Stdout, "http://www.gorillatoolkit.org/"); err != nil {
-		log.Fatalf("could not fetch: %v", err)
-	}
-
-	data, _ := services.GetParcelData("aaaa")
-
-	fmt.Fprintf(w, "Parcel data: %v", data)
+	data, _ := services.GetParcelData(vars["trackingNumber"])
+	fmt.Fprintf(w, "{ \"trackingNumber\": \"%v\",\"data\": %v }", vars["trackingNumber"], data)
 }

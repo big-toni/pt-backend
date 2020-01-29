@@ -26,7 +26,7 @@ func main() {
 
 	r.HandleFunc("/", handlers.RootHandler)
 	r.HandleFunc("/user/{id:[0-9]+}/", handlers.UserHandler)
-	r.HandleFunc("/parcel/", handlers.ParcelHandler)
+	r.HandleFunc("/parcel/{trackingNumber:[a-zA-Z0-9]+}/", handlers.ParcelHandler)
 
 	http.ListenAndServe(":3000", r)
 }

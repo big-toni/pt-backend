@@ -1,6 +1,9 @@
 package services
 
-func GetParcelData(parcelNumber string) (string, bool) {
+import (
+	providers "../providers"
+)
 
-	return "", false
+func GetParcelData(parcelNumber string) (string, bool) {
+	return providers.GetGlobalCanaioData(parcelNumber)
 }
