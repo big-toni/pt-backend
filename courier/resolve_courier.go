@@ -5,55 +5,62 @@ import (
 )
 
 type inquiry struct {
-	Name  string
-	Regex string
+	name  string
+	regex string
+	approve func(b string) bool
 }
 
-var couriers = []inquiry{
-	{Name: "ups", Regex: `^1Z[0-9A-Z]{16}$`},
-	{Name: "ups", Regex: `^(H|T|J|K|F|W|M|Q|A)\d{10}$`},
-	{Name: "amazon", Regex: `^1\d{2}-\d{7}-\d{7}:\d{13}$`},
-	{Name: "fedex", Regex: `^\d{12}$`},
-	{Name: "fedex", Regex: `^\d{15}$`},
-	{Name: "fedex", Regex: `^\d{20}$`},
-	{Name: "usps", Regex: `^\d{20}$`},
-	{Name: "usps", Regex: `^02\d{18}$`},
-	{Name: "fedex", Regex: `^02\d{18}$`},
-	{Name: "fedex", Regex: `^DT\d{12}$`},
-	{Name: "fedex", Regex: `^927489\d{16}$`},
-	{Name: "fedex", Regex: `^926129\d{16}$`},
-	{Name: "upsmi", Regex: `^927489\d{16}$`},
-	{Name: "upsmi", Regex: `^926129\d{16}$`},
-	{Name: "upsmi", Regex: `^927489\d{20}$`},
-	{Name: "fedex", Regex: `^96\d{20}$`},
-	{Name: "usps", Regex: `^927489\d{16}$`},
-	{Name: "usps", Regex: `^926129\d{16}$`},
-	{Name: "fedex", Regex: `^7489\d{16}$`},
-	{Name: "fedex", Regex: `^6129\d{16}$`},
-	{Name: "usps", Regex: `^(91|92|93|94|95|96)\d{20}$`},
-	{Name: "usps", Regex: `^\d{26}$`},
-	{Name: "usps", Regex: `^420\d{27}$`},
-	{Name: "usps", Regex: `^420\d{31}$`},
-	{Name: "dhlgm", Regex: `^420\d{27}$`},
-	{Name: "dhlgm", Regex: `^420\d{31}$`},
-	{Name: "dhlgm", Regex: `^94748\d{17}$`},
-	{Name: "dhlgm", Regex: `^93612\d{17}$`},
-	{Name: "dhlgm", Regex: `^GM\d{16}`},
-	{Name: "usps", Regex: `^[A-Z]{2}\d{9}[A-Z]{2}$`},
-	{Name: "canadapost", Regex: `^\d{16}$`},
-	{Name: "lasership", Regex: `^L[A-Z]\d{8}$`},
-	{Name: "lasership", Regex: `^1LS\d{12}`},
-	{Name: "lasership", Regex: `^Q\d{8}[A-Z]`},
-	{Name: "ontrac", Regex: `^(C|D)\d{14}$`},
-	{Name: "prestige", Regex: `^P[A-Z]{1}\d{8}`},
-	{Name: "a1intl", Regex: `^AZ.\d+`},
+func aproveUps(a string) bool {
+	return true
 }
 
+var courierInquiries = []inquiry{
+	{name: "ups", regex: `^1Z[0-9A-Z]{16}$`, approve: aproveUps },
+	{name: "ups", regex: `^(H|T|J|K|F|W|M|Q|A)\d{10}$`},
+	{name: "amazon", regex: `^1\d{2}-\d{7}-\d{7}:\d{13}$`},
+	{name: "fedex", regex: `^\d{12}$`},
+	{name: "fedex", regex: `^\d{15}$`},
+	{name: "fedex", regex: `^\d{20}$`},
+	{name: "usps", regex: `^\d{20}$`},
+	{name: "usps", regex: `^02\d{18}$`},
+	{name: "fedex", regex: `^02\d{18}$`},
+	{name: "fedex", regex: `^DT\d{12}$`},
+	{name: "fedex", regex: `^927489\d{16}$`},
+	{name: "fedex", regex: `^926129\d{16}$`},
+	{name: "upsmi", regex: `^927489\d{16}$`},
+	{name: "upsmi", regex: `^926129\d{16}$`},
+	{name: "upsmi", regex: `^927489\d{20}$`},
+	{name: "fedex", regex: `^96\d{20}$`},
+	{name: "usps", regex: `^927489\d{16}$`},
+	{name: "usps", regex: `^926129\d{16}$`},
+	{name: "fedex", regex: `^7489\d{16}$`},
+	{name: "fedex", regex: `^6129\d{16}$`},
+	{name: "usps", regex: `^(91|92|93|94|95|96)\d{20}$`},
+	{name: "usps", regex: `^\d{26}$`},
+	{name: "usps", regex: `^420\d{27}$`},
+	{name: "usps", regex: `^420\d{31}$`},
+	{name: "dhlgm", regex: `^420\d{27}$`},
+	{name: "dhlgm", regex: `^420\d{31}$`},
+	{name: "dhlgm", regex: `^94748\d{17}$`},
+	{name: "dhlgm", regex: `^93612\d{17}$`},
+	{name: "dhlgm", regex: `^GM\d{16}`},
+	{name: "usps", regex: `^[A-Z]{2}\d{9}[A-Z]{2}$`},
+	{name: "canadapost", regex: `^\d{16}$`},
+	{name: "lasership", regex: `^L[A-Z]\d{8}$`},
+	{name: "lasership", regex: `^1LS\d{12}`},
+	{name: "lasership", regex: `^Q\d{8}[A-Z]`},
+	{name: "ontrac", regex: `^(C|D)\d{14}$`},
+	{name: "prestige", regex: `^P[A-Z]{1}\d{8}`},
+	{name: "a1intl", regex: `^AZ.\d+`},
+}
+
+// ResolveCourier resolves courier
 func ResolveCourier(trackingNumber string) (string, bool) {
-	for _, i := range couriers {
-		matched, _ := regexp.MatchString(i.Regex, trackingNumber)
+	for _, i := range courierInquiries {
+		matched, _ := regexp.MatchString(i.regex, trackingNumber)
 		if matched {
-			return i.Name, true
+			i.approve(trackingNumber)
+			return i.name, true
 		}
 	}
 	return "", false
