@@ -1,5 +1,9 @@
 package courier
 
+import (
+	"regexp"
+)
+
 type inquiry struct {
 	Name  string
 	Regex string
@@ -43,4 +47,15 @@ var couriers = []inquiry{
 	{Name: "ontrac", Regex: "/^(C|D)\\d{14}$/"},
 	{Name: "prestige", Regex: "/^P[A-Z]{1}\\d{8}/"},
 	{Name: "a1intl", Regex: "/^AZ.\\d+/"},
+	{Name: "fake", Regex: "([0-9]+)"},
+}
+
+func ResolveCourier(trackingNumber string) (string, bool) {
+	for _, i := range couriers {
+		matched, _ := regexp.MatchString(i.Regex, trackingNumber)
+		if matched {
+			return i.Name, true
+		}
+	}
+	return "", false
 }
