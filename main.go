@@ -1,7 +1,7 @@
 package main
 
 import (
-	handlers "./handlers"
+	route "./route"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -24,9 +24,9 @@ func main() {
 	// r.Use(amw.Middleware)
 	r.Use(loggingMiddleware)
 
-	r.HandleFunc("/", handlers.RootHandler)
-	r.HandleFunc("/user/{id:[0-9]+}/", handlers.UserHandler)
-	r.HandleFunc("/parcel/{trackingNumber:[a-zA-Z0-9]+}/", handlers.ParcelHandler)
+	r.HandleFunc("/", route.Root)
+	r.HandleFunc("/user/{id:[0-9]+}/", route.User)
+	r.HandleFunc("/parcel/{trackingNumber:[a-zA-Z0-9]+}/", route.Parcel)
 
 	http.ListenAndServe(":3000", r)
 }
@@ -43,7 +43,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Do stuff here
 		log.Println(r.RequestURI)
-		log.Println("toni")
 		// Call the next handler, which can be another middleware in the chain, or the final handler.
 		next.ServeHTTP(w, r)
 	})
