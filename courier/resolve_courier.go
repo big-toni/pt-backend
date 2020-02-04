@@ -5,17 +5,34 @@ import (
 )
 
 type inquiry struct {
-	name  string
-	regex string
-	approve func(b string) bool
+	name    string
+	regex   string
+	approve func(b string) (bool, bool)
 }
 
-func aproveUps(a string) bool {
-	return true
+func aproveUps(trk string) (bool, bool) {
+	runes := []rune(trk)
+	sum := 0
+
+	for _, rune := range runes[2:16] {
+		sum += int(rune - '0')
+	}
+
+	var checkdigit int
+	if sum%10 > 0 {
+		checkdigit = 10 - sum%10
+	} else {
+		checkdigit = 0
+	}
+
+	if checkdigit == int(runes[17] - '0') {
+		return true, true
+	}
+	return false, false
 }
 
 var courierInquiries = []inquiry{
-	{name: "ups", regex: `^1Z[0-9A-Z]{16}$`, approve: aproveUps },
+	{name: "ups", regex: `^1Z[0-9A-Z]{16}$`, approve: aproveUps},
 	{name: "ups", regex: `^(H|T|J|K|F|W|M|Q|A)\d{10}$`},
 	{name: "amazon", regex: `^1\d{2}-\d{7}-\d{7}:\d{13}$`},
 	{name: "fedex", regex: `^\d{12}$`},
@@ -59,7 +76,13 @@ func ResolveCourier(trackingNumber string) (string, bool) {
 	for _, i := range courierInquiries {
 		matched, _ := regexp.MatchString(i.regex, trackingNumber)
 		if matched {
-			i.approve(trackingNumber)
+			if i.approve != nil {
+				ok, _ := i.approve(trackingNumber)
+				if ok { 
+					return i.name, true
+				}
+				return "", false
+			}
 			return i.name, true
 		}
 	}
