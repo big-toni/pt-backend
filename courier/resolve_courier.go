@@ -1,6 +1,7 @@
 package courier
 
 import (
+	"fmt"
 	"regexp"
 )
 
@@ -10,7 +11,7 @@ type inquiry struct {
 	approve func(b string) (bool, bool)
 }
 
-func aproveUps(trk string) (bool, bool) {
+func approveUps(trk string) (bool, bool) {
 	runes := []rune(trk)
 	sum := 0
 
@@ -25,15 +26,56 @@ func aproveUps(trk string) (bool, bool) {
 		checkdigit = 0
 	}
 
-	if checkdigit == int(runes[17] - '0') {
+	if checkdigit == int(runes[17]-'0') {
+		return true, true
+	}
+	return false, false
+}
+
+func checkDigit(trk string, multipliers []int, mod int) bool {
+	midx := 0
+	sum := 0
+	runes := []rune(trk)
+	var checkdigit int
+
+	for _, char := range runes[0 : len(runes)-1] {
+		sum += int(char-'0') * multipliers[midx]
+		if midx == len(multipliers)-1 {
+			midx = 0
+		} else {
+			midx++
+		}
+	}
+	if mod == 11 {
+		checkdigit = sum % 11
+		if checkdigit == 10 {
+			checkdigit = 0
+		}
+	}
+	if mod == 10 {
+		checkdigit = 0
+		if (sum % 10) > 0 {
+			checkdigit = (10 - sum%10)
+		}
+	}
+	value := int(runes[len(runes)-1] - '0')
+	return checkdigit == value
+}
+
+func approveUpsFreight(trk string) (bool, bool) {
+	runes := []rune(trk)
+	firstChar := int(runes[0]-63) % 10
+	remaining := runes[1:]
+	newtrk := fmt.Sprintf("%v%s", firstChar, string(remaining))
+	if checkDigit(newtrk, []int{3, 1, 7}, 10) {
 		return true, true
 	}
 	return false, false
 }
 
 var courierInquiries = []inquiry{
-	{name: "ups", regex: `^1Z[0-9A-Z]{16}$`, approve: aproveUps},
-	{name: "ups", regex: `^(H|T|J|K|F|W|M|Q|A)\d{10}$`},
+	{name: "ups", regex: `^1Z[0-9A-Z]{16}$`, approve: approveUps},
+	{name: "ups", regex: `^(H|T|J|K|F|W|M|Q|A)\d{10}$`, approve: approveUpsFreight},
 	{name: "amazon", regex: `^1\d{2}-\d{7}-\d{7}:\d{13}$`},
 	{name: "fedex", regex: `^\d{12}$`},
 	{name: "fedex", regex: `^\d{15}$`},
@@ -78,7 +120,7 @@ func ResolveCourier(trackingNumber string) (string, bool) {
 		if matched {
 			if i.approve != nil {
 				ok, _ := i.approve(trackingNumber)
-				if ok { 
+				if ok {
 					return i.name, true
 				}
 				return "", false
