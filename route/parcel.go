@@ -1,10 +1,12 @@
 package route
 
 import (
-	service "../service"
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
+	"strings"
+
+	service "../service"
+	"github.com/gorilla/mux"
 )
 
 func Parcel(w http.ResponseWriter, r *http.Request) {
@@ -19,6 +21,6 @@ func Courier(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	courier, _ := service.ResolveCourier(vars["trackingNumber"])
-	fmt.Fprintf(w, "{ \"trackingNumber\": \"%v\",\"courier\": \"%v\" }", vars["trackingNumber"], courier)
+	couriers, _ := service.ResolveCourier(vars["trackingNumber"])
+	fmt.Fprintf(w, "{ \"trackingNumber\": \"%v\",\"couriers\": %q }", vars["trackingNumber"], strings.Join(couriers, ", "))
 }

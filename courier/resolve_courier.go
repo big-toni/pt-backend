@@ -82,8 +82,9 @@ func approveFedex12(trk string) (bool, bool) {
 }
 
 func approveFedexDoorTag(trk string) (bool, bool) {
-	//trk.match(/^DT(\d{12})$/)[1], [3,1,7], 11
-	if checkDigit(trk, []int{3, 1, 7}, 11) {
+	re := regexp.MustCompile(`^DT(\d{12})$`)
+	newtrk := re.FindStringSubmatch(trk)[1]
+	if checkDigit(newtrk, []int{3, 1, 7}, 11) {
 		return true, false
 	}
 	return false, false
@@ -143,19 +144,24 @@ func approveUsps26(trk string) (bool, bool) {
 }
 
 func approveUsps420Zip(trk string) (bool, bool) {
-	// trk.match(/^420\d{5}(\d{22})$/)[1]
-	if checkDigit(trk, []int{3, 1}, 10) {
+	re := regexp.MustCompile(`^420\d{5}(\d{22})$`)
+	newtrk := re.FindStringSubmatch(trk)[1]
+	if checkDigit(newtrk, []int{3, 1}, 10) {
 		return true, false
 	}
 	return false, false
 }
 
 func approveUsps420ZipPlus4(trk string) (bool, bool) {
-	// trk.match(/^420\d{9}(\d{22})$/)[1]
-	if checkDigit(trk, []int{3, 1}, 10) {
+	re1 := regexp.MustCompile(`^420\d{9}(\d{22})$`)
+	newtrk1 := re1.FindStringSubmatch(trk)[1]
+	if checkDigit(newtrk1, []int{3, 1}, 10) {
 		return true, false
-		// trk.match(/^420\d{5}(\d{26})$/)[1]
-	} else if checkDigit(trk[7:], []int{3, 1}, 10) {
+	}
+
+	re2 := regexp.MustCompile(`^420\d{5}(\d{26})$`)
+	newtrk2 := re2.FindStringSubmatch(trk)[1]
+	if checkDigit(newtrk2[7:], []int{3, 1}, 10) {
 		return true, false
 	}
 	return false, false
@@ -216,20 +222,28 @@ var courierInquiries = []inquiry{
 }
 
 // ResolveCourier resolves courier
-func ResolveCourier(trackingNumber string) (string, bool) {
+func ResolveCourier(trackingNumber string) ([]string, bool) {
+	couriers := []string{}
 	trk := strings.Replace(trackingNumber, " ", "", -1)
 	for _, i := range courierInquiries {
 		matched, _ := regexp.MatchString(i.regex, trk)
 		if matched {
-			if i.approve != nil {
-				ok, _ := i.approve(trk)
+			if i.approve == nil {
+				couriers = append(couriers, i.name)
+			} else {
+				ok, stop := i.approve(trk)
 				if ok {
-					return i.name, true
+					couriers = append(couriers, i.name)
 				}
-				return "", false
+				if stop {
+					return couriers, true
+				}
 			}
-			return i.name, true
 		}
 	}
-	return "", false
+
+	if len(couriers) > 0 {
+		return couriers, true
+	}
+	return couriers, false
 }
