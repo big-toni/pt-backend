@@ -9,6 +9,7 @@ import (
 	"regexp"
 )
 
+// GetGlobalCanaioData func
 func GetGlobalCanaioData(parcelNumber string) (string, bool) {
 	/* test with:
 	LE571379316CN,

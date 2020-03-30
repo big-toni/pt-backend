@@ -1,43 +1,41 @@
 package main
 
 import (
-	route "./route"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strings"
+
+	route "./route"
+	service "./service"
+	"github.com/gorilla/mux"
 )
 
-// Define our struct
-type authenticationMiddleware struct {
-	tokenUsers map[string]string
-}
-
 func main() {
-	r := mux.NewRouter()
+	router := mux.NewRouter()
 
-	amw := authenticationMiddleware{}
-	a := make(map[string]string)
-	amw.tokenUsers = a
-	amw.Populate()
+	router.HandleFunc("/", route.Root)
+	router.Use(loggingMiddleware)
 
-	// TODO: currently disabled
-	// r.Use(amw.Middleware)
-	r.Use(loggingMiddleware)
+	web := router.PathPrefix("/").Subrouter()
+	web.HandleFunc("/", route.Root)
+	// admin := router.PathPrefix("/admin").Subrouter()
+	api := router.PathPrefix("/api").Subrouter()
 
-	r.HandleFunc("/", route.Root)
-	r.HandleFunc("/user/{id:[0-9]+}/", route.User)
-	r.HandleFunc("/parcel/{trackingNumber:[a-zA-Z0-9]+}/", route.Parcel)
-	r.HandleFunc("/courier/{trackingNumber:[a-zA-Z0-9]+}/", route.Courier)
+	auth := api.PathPrefix("/auth").Subrouter()
+	auth.Use(loggingMiddleware)
+	auth.HandleFunc("/login", route.Login)
 
-	http.ListenAndServe(":3000", r)
-}
+	account := api.PathPrefix("/account").Subrouter()
+	account.Use(authMiddleware)
+	account.HandleFunc("/data", route.Account)
+	account.HandleFunc("/user/{id:[0-9]+}/", route.User)
 
-// Initialize it somewhere
-func (amw *authenticationMiddleware) Populate() {
-	amw.tokenUsers["00000000"] = "user0"
-	amw.tokenUsers["aaaaaaaa"] = "userA"
-	amw.tokenUsers["05f717e5"] = "randomUser"
-	amw.tokenUsers["deadbeef"] = "user0"
+	parcels := api.PathPrefix("/parcels").Subrouter()
+	parcels.Use(authMiddleware)
+	parcels.HandleFunc("/data/{trackingNumber:[a-zA-Z0-9]+}/", route.Parcel)
+	parcels.HandleFunc("/courier/{trackingNumber:[a-zA-Z0-9]+}/", route.Courier)
+
+	http.ListenAndServe(":3000", router)
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
@@ -50,18 +48,23 @@ func loggingMiddleware(next http.Handler) http.Handler {
 }
 
 // Middleware function, which will be called for each request
-func (amw *authenticationMiddleware) Middleware(next http.Handler) http.Handler {
+func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("X-Session-Token")
+		authToken := r.Header.Get("Authorization")
+		authArr := strings.Split(authToken, " ")
 
-		if user, found := amw.tokenUsers[token]; found {
-			// We found the token in our map
-			log.Printf("Authenticated user %s\n", user)
-			// Pass down the request to the next middleware (or final handler)
-			next.ServeHTTP(w, r)
+		if len(authArr) != 2 {
+			log.Println("Authentication header is invalid: " + authToken)
+			w.WriteHeader(http.StatusUnauthorized)
+		}
+
+		jwtToken := authArr[1]
+		authorised := service.AuthenticateUser(jwtToken)
+
+		if !authorised {
+			w.WriteHeader(http.StatusUnauthorized)
 		} else {
-			// Write an error and stop the handler chain
-			http.Error(w, "Forbidden", http.StatusForbidden)
+			next.ServeHTTP(w, r)
 		}
 	})
 }
