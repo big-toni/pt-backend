@@ -15,7 +15,7 @@ func Parcel(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	data, _ := service.GetParcelData(vars["trackingNumber"])
-	fmt.Fprintf(w, "{ \"trackingNumber\": \"%v\",\"data\": %v }", vars["trackingNumber"], data)
+	w.Write(data)
 }
 
 // Courier func

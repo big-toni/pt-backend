@@ -5,7 +5,7 @@ import (
 )
 
 // GetParcelData func
-func GetParcelData(parcelNumber string) (string, bool) {
+func GetParcelData(parcelNumber string) ([]byte, bool) {
 	return courier.GetGlobalCanaioData(parcelNumber)
 }
 

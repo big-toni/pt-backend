@@ -10,7 +10,7 @@ import (
 )
 
 // GetGlobalCanaioData func
-func GetGlobalCanaioData(parcelNumber string) (string, bool) {
+func GetGlobalCanaioData(parcelNumber string) ([]byte, bool) {
 	/* test with:
 	LE571379316CN,
 	S00000111674824,
@@ -28,7 +28,7 @@ func GetGlobalCanaioData(parcelNumber string) (string, bool) {
 	urlString := fmt.Sprintf("http://global.cainiao.com/detail.htm?mailNoList=%s", parcelNumber)
 	resp, err := http.Get(urlString)
 	if err != nil {
-		return "", false
+		return nil, false
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
@@ -47,8 +47,8 @@ func GetGlobalCanaioData(parcelNumber string) (string, bool) {
 
 		parcelData, _ := json.Marshal(result["data"].([]interface{})[0])
 
-		return string(parcelData), true
+		return parcelData, true
 	}
 
-	return "", false
+	return nil, false
 }
