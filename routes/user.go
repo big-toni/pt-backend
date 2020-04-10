@@ -1,4 +1,4 @@
-package route
+package routes
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	service "../service"
+	"pt-server/services"
 
 	"github.com/gorilla/mux"
 )
@@ -70,11 +70,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Authenticate user\nemail: %s\npassword: %s", creds.Email, creds.Password)
 
-	tokenString, err := service.CreateToken(creds.Email, creds.Password)
+	tokenString, err := services.CreateToken(creds.Email, creds.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	services.SaveToken(tokenString)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
