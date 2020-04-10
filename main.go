@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"pt-server/routes"
@@ -37,7 +38,29 @@ func main() {
 	parcels.HandleFunc("/data/{trackingNumber:[a-zA-Z0-9]+}/", routes.Parcel)
 	parcels.HandleFunc("/courier/{trackingNumber:[a-zA-Z0-9]+}/", routes.Courier)
 
-	http.ListenAndServe(Env["PORT"], router)
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
+
+	http.ListenAndServe(":"+port, router)
+
+	// if port == "" {
+	// 	log.Fatal("$PORT must be set")
+	// }
+
+	// router := gin.New()
+	// router.Use(gin.Logger())
+	// router.LoadHTMLGlob("templates/*.tmpl.html")
+	// router.Static("/static", "static")
+
+	// router.GET("/", func(c *gin.Context) {
+	// 	c.HTML(http.StatusOK, "index.tmpl.html", nil)
+	// })
+
+	// router.Run(":" + port)
+
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
