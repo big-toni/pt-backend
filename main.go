@@ -5,37 +5,39 @@ import (
 	"net/http"
 	"strings"
 
-	route "./route"
-	service "./service"
+	"pt-server/routes"
+	"pt-server/services"
+
 	"github.com/gorilla/mux"
 )
 
 func main() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/", route.Root)
+	router.HandleFunc("/", routes.Root)
 	router.Use(loggingMiddleware)
 
 	web := router.PathPrefix("/").Subrouter()
-	web.HandleFunc("/", route.Root)
+	web.HandleFunc("/", routes.Root)
 	// admin := router.PathPrefix("/admin").Subrouter()
 	api := router.PathPrefix("/api").Subrouter()
 
 	auth := api.PathPrefix("/auth").Subrouter()
 	auth.Use(loggingMiddleware)
-	auth.HandleFunc("/login", route.Login)
+	auth.HandleFunc("/login", routes.Login)
 
 	account := api.PathPrefix("/account").Subrouter()
 	account.Use(authMiddleware)
-	account.HandleFunc("/data", route.Account)
-	account.HandleFunc("/user/{id:[0-9]+}/", route.User)
+	account.HandleFunc("/data", routes.Account)
+	account.HandleFunc("/user/{id:[0-9]+}/", routes.User)
 
 	parcels := api.PathPrefix("/parcels").Subrouter()
 	parcels.Use(authMiddleware)
-	parcels.HandleFunc("/data/{trackingNumber:[a-zA-Z0-9]+}/", route.Parcel)
-	parcels.HandleFunc("/courier/{trackingNumber:[a-zA-Z0-9]+}/", route.Courier)
 
-	http.ListenAndServe(":3000", router)
+	parcels.HandleFunc("/data/{trackingNumber:[a-zA-Z0-9]+}/", routes.Parcel)
+	parcels.HandleFunc("/courier/{trackingNumber:[a-zA-Z0-9]+}/", routes.Courier)
+
+	http.ListenAndServe(Env["PORT"], router)
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
@@ -59,7 +61,7 @@ func authMiddleware(next http.Handler) http.Handler {
 		}
 
 		jwtToken := authArr[1]
-		authorised := service.AuthenticateUser(jwtToken)
+		authorised := services.AuthenticateUser(jwtToken)
 
 		if !authorised {
 			w.WriteHeader(http.StatusUnauthorized)

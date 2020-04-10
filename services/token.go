@@ -1,6 +1,7 @@
-package service
+package services
 
 import (
+	"crypto/sha256"
 	"errors"
 	"log"
 	"time"
@@ -20,7 +21,7 @@ var users = map[string]string{
 
 // CreateToken func
 func CreateToken(email string, password string) (string, error) {
-	tknID, _ := uuid.NewV4()
+	tknID := uuid.NewV4()
 	expectedPassword, ok := users[email]
 
 	if !ok || expectedPassword != password {
@@ -75,4 +76,13 @@ func AuthenticateUser(tknStr string) bool {
 	}
 
 	return true
+}
+
+// SaveToken func
+func SaveToken(token string) (bool, error) {
+	sha256 := sha256.Sum256([]byte(token))
+
+	log.Printf("sha256: %x\n", sha256)
+
+	return true, nil
 }

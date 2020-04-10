@@ -9,8 +9,8 @@
       "type": "go",
       "request": "launch",
       "mode": "debug",
-      "program": "${workspaceRoot}/main.go",
-      "trace": "verbose"
+      "program": "${workspaceRoot}",
+      // "trace": "verbose"
     }
   ]
 }

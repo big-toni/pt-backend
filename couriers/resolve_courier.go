@@ -1,4 +1,4 @@
-package courier
+package couriers
 
 import (
 	"fmt"

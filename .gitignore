@@ -17,3 +17,4 @@
 # MS VSCode
 # .vscode
 __debug_bin
+*.env

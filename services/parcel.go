@@ -1,10 +1,11 @@
-package service
+package services
 
 import (
 	"encoding/json"
 	"strconv"
 
-	courier "../courier"
+	"pt-server/couriers"
+
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -31,7 +32,7 @@ type parcelData struct {
 
 // GetParcelData func
 func GetParcelData(parcelNumber string) ([]byte, bool) {
-	response, _ := courier.GetGlobalCanaioData(parcelNumber)
+	response, _ := couriers.GetGlobalCanaioData(parcelNumber)
 
 	var result map[string]interface{}
 	json.Unmarshal(response, &result)
@@ -68,5 +69,5 @@ func GetParcelData(parcelNumber string) ([]byte, bool) {
 
 // ResolveCourier func
 func ResolveCourier(parcelNumber string) ([]string, bool) {
-	return courier.ResolveCourier(parcelNumber)
+	return couriers.ResolveCourier(parcelNumber)
 }
