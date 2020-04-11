@@ -68,7 +68,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Authenticate user\nemail: %s\npassword: %s", creds.Email, creds.Password)
+	// log.Printf("Authenticate user\nemail: %s\npassword: %s", creds.Email, creds.Password)
 
 	tokenString, err := services.CreateToken(creds.Email, creds.Password)
 	if err != nil {
