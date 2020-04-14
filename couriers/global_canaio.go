@@ -32,7 +32,14 @@ func GetGlobalCanaioData(parcelNumber string) ([]byte, bool) {
 		// Unmarshal or Decode the JSON to the interface.
 		json.Unmarshal([]byte(unescaped), &result)
 
-		parcelData, _ := json.Marshal(result["data"].([]interface{})[0])
+		data := result["data"].([]interface{})[0]
+
+		errCode := data.(map[string]interface{})["errorCode"]
+		if errCode == "RESULT_EMPTY" {
+			return nil, false
+		} 
+
+		parcelData, _ := json.Marshal(data)
 
 		return parcelData, true
 	}

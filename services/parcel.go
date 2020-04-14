@@ -34,6 +34,10 @@ type parcelData struct {
 func GetParcelData(parcelNumber string) ([]byte, bool) {
 	response, _ := couriers.GetGlobalCanaioData(parcelNumber)
 
+	if response == nil {
+		return nil, false
+	}
+
 	var result map[string]interface{}
 	json.Unmarshal(response, &result)
 
