@@ -80,8 +80,8 @@ func jsGetText2(sel string) (js string) {
 	return strings.Join([]string{funcJS, invokeFuncJS}, " ")
 }
 
-// GetOrangeconnexData func
-func GetOrangeconnexData(parcelNumber string) (*ParcelData, bool) {
+// GetOrangeConnexData func
+func GetOrangeConnexData(parcelNumber string) (*ParcelData, bool) {
 	// create chrome instance
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
