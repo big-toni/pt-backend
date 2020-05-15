@@ -3,6 +3,7 @@ package couriers
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"strings"
 	"time"
@@ -42,40 +43,9 @@ func jsGetDetails() (js string) {
 	return strings.Join([]string{funcJS, invokeFuncJS}, " ")
 }
 
-func jsGetText2(sel string) (js string) {
-	const funcJS = `function getItems(sel) {
-				var items = [];
-				var elements = document.body.querySelectorAll(sel);
-
-				for(var i = 0; i < elements.length; i++) {
-					var current = elements[i];
-					var commonDate = current.querySelector("h3").textContent.trim()
-
-					var entries = current.querySelectorAll("ul > div");
-
-					entries && [...entries].map(x => {
-						var item = {};
-						item.date = commonDate;
-
-						item.time = x.querySelector("span")
-						.textContent
-						.trim();
-
-						item.description = x.querySelector("div[class='timeline-description']")
-						.textContent
-						.trim();
-
-						item.location = x.querySelector("div[class='timeline-location fl']")
-						.textContent
-						.replace(/\s*\n+\s*/g,'')
-						.trim();
-						
-						items.push(item)
-					})
-				}
-				return items
-			 };`
-
+func jsGetOrangeConnexTimeline(sel string) (js string) {
+	buf, _ := ioutil.ReadFile("jsHelpers/orangeConnex.js")
+	funcJS := string(buf)
 	invokeFuncJS := `var a = getItems("` + sel + `"); a;`
 	return strings.Join([]string{funcJS, invokeFuncJS}, " ")
 }
@@ -95,12 +65,14 @@ func GetOrangeConnexData(parcelNumber string) (*ParcelData, bool) {
 
 	urlString := fmt.Sprintf(`https://www.orangeconnex.com/tracking?language=en&trackingnumber=%s`, parcelNumber)
 
-	timelineEvaluate := jsGetText2("ul[class='timeline']")
+	timelineEvaluate := jsGetOrangeConnexTimeline("ul[class='timeline']")
 
 	details := jsGetDetails()
 
 	var timeline []timelineEntry
-	var parcelData ParcelData
+	parcelData := ParcelData{
+		Provider: "OrangeConnex",
+	}
 
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(urlString),
@@ -113,6 +85,11 @@ func GetOrangeConnexData(parcelNumber string) (*ParcelData, bool) {
 
 	if err != nil {
 		log.Fatal(err)
+		return nil, true
+	}
+
+	// TODO: need to refactor
+	if len(*parcelData.Timeline) == 0 {
 		return nil, true
 	}
 

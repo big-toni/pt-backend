@@ -37,7 +37,8 @@ func GetGlobalCanaioData(parcelNumber string) (*ParcelData, bool) {
 		data := result["data"].([]interface{})[0]
 
 		errCode := data.(map[string]interface{})["errorCode"]
-		if errCode == "RESULT_EMPTY" {
+		success := data.(map[string]interface{})["success"]
+		if errCode == "RESULT_EMPTY" || success == false {
 			return nil, false
 		}
 
@@ -56,7 +57,9 @@ func mapData(data []byte) (*ParcelData, bool) {
 	var result map[string]interface{}
 	json.Unmarshal(data, &result)
 
-	var parcelData ParcelData
+	parcelData := ParcelData{
+		Provider: "GlobalCanaio",
+	}
 	parcelData.To = &address{Country: result["destCountry"].(string)}
 	parcelData.LastUpdated = result["cachedTime"].(string)
 	// mapstructure.Decode(result["latestTrackingInfo"].(map[string]interface{}), &parcelData.LatestTrackingInfo)
