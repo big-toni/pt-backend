@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+
 	"os"
 	"strings"
 
@@ -10,7 +11,14 @@ import (
 	"pt-server/services"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
+	}
+}
 
 func main() {
 	router := mux.NewRouter()
@@ -45,10 +53,6 @@ func main() {
 	}
 
 	http.ListenAndServe(":"+port, router)
-
-	// if port == "" {
-	// 	log.Fatal("$PORT must be set")
-	// }
 
 	// router := gin.New()
 	// router.Use(gin.Logger())
