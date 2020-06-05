@@ -4,16 +4,14 @@ import (
 	"crypto/sha256"
 	"errors"
 	"log"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	uuid "github.com/satori/go.uuid"
 )
 
-const (
-	jwtSecret = "tonis_stupid_app"
-)
-
+// TODO: Move to database
 var users = map[string]string{
 	"test@parcel.tracker": "123TVtv",
 	"user2":               "password2",
@@ -21,6 +19,9 @@ var users = map[string]string{
 
 // CreateToken func
 func CreateToken(email string, password string) (string, error) {
+	jwtSecret := os.Getenv("JWT_SECRET")
+	jwtIssuer := os.Getenv("JWT_ISSUER")
+
 	tknID := uuid.NewV4()
 	expectedPassword, ok := users[email]
 
@@ -29,7 +30,7 @@ func CreateToken(email string, password string) (string, error) {
 	}
 
 	claims := jwt.StandardClaims{
-		Issuer:   "ParcelTrackr",
+		Issuer:   jwtIssuer,
 		Subject:  email,
 		IssuedAt: time.Now().UTC().Unix(),
 		Id:       tknID.String(),
@@ -47,6 +48,7 @@ func CreateToken(email string, password string) (string, error) {
 
 // AuthenticateUser func
 func AuthenticateUser(tknStr string) bool {
+	jwtSecret := os.Getenv("JWT_SECRET")
 	token, err := jwt.ParseWithClaims(tknStr, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if jwt.SigningMethodHS256 != token.Method {
 			return nil, errors.New("Invalid signing algorithm")

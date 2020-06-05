@@ -63,8 +63,6 @@ func main() {
 	// 	c.HTML(http.StatusOK, "index.tmpl.html", nil)
 	// })
 
-	// router.Run(":" + port)
-
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
