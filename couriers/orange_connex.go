@@ -5,11 +5,21 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/chromedp/chromedp"
 )
+
+type orangeConnexTimelineEntry struct {
+	Date        string   `json:"date"`
+	Description string   `json:"description"`
+	ID          string   `json:"id"`
+	Location    *address `json:"location"`
+	Status      string   `json:"status"`
+	Time        string   `json:"time"`
+}
 
 func jsGetDetails() (js string) {
 	const funcJS = `function getDetails() {
@@ -69,7 +79,7 @@ func GetOrangeConnexData(parcelNumber string) (*ParcelData, bool) {
 
 	details := jsGetDetails()
 
-	var timeline []timelineEntry
+	var timeline []orangeConnexTimelineEntry
 	parcelData := ParcelData{
 		Provider: "OrangeConnex",
 	}
@@ -81,7 +91,8 @@ func GetOrangeConnexData(parcelNumber string) (*ParcelData, bool) {
 		chromedp.Evaluate(timelineEvaluate, &timeline),
 		chromedp.Evaluate(details, &parcelData),
 	)
-	parcelData.Timeline = &timeline
+
+	parcelData.Timeline = getOCTimelineData(timeline)
 
 	if err != nil {
 		log.Fatal(err)
@@ -94,4 +105,29 @@ func GetOrangeConnexData(parcelNumber string) (*ParcelData, bool) {
 	}
 
 	return &parcelData, true
+}
+
+func getOCTimelineData(ocTimeline []orangeConnexTimelineEntry) *[]timelineEntry {
+	var parsedTimeline []timelineEntry
+	timelineLen := len(ocTimeline)
+
+	for i, item := range ocTimeline {
+		entry := timelineEntry{}
+
+		entry.Description = item.Description
+		//Add indices in reversed order
+		entry.ID = strconv.Itoa(timelineLen - 1 - i)
+		entry.Location = item.Location
+		entry.Status = item.Status
+
+		layout := "Jan 02,2006T15:04:05"
+		t, err := time.Parse(layout, item.Date+"T"+item.Time)
+		entry.Time = t
+		if err != nil {
+			log.Println(err)
+		}
+		parsedTimeline = append(parsedTimeline, entry)
+	}
+
+	return &parsedTimeline
 }
