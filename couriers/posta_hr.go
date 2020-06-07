@@ -5,11 +5,21 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/chromedp/chromedp"
 )
+
+type postaHrTimelineEntry struct {
+	Date        string   `json:"date"`
+	Description string   `json:"description"`
+	ID          string   `json:"id"`
+	Location    *address `json:"location"`
+	Status      string   `json:"status"`
+	Time        string   `json:"time"`
+}
 
 func jsGetPostHrTimeline(sel string) (js string) {
 	buf, _ := ioutil.ReadFile("jsHelpers/postaHr.js")
@@ -40,12 +50,13 @@ func GetPostaHrData(parcelNumber string) (*ParcelData, bool) {
 
 	urlString := fmt.Sprintf(`https://posiljka.posta.hr/Tracking/Info`)
 
+	var timeline []postaHrTimelineEntry
 	parcelData := ParcelData{
 		Provider: "PostaHr",
 	}
 	jsTimeline := jsGetPostHrTimeline("div[class='styles__table___5Ule6']")
 
-	var foundData string;
+	var foundData string
 
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(urlString),
@@ -64,8 +75,10 @@ func GetPostaHrData(parcelNumber string) (*ParcelData, bool) {
 
 		chromedp.Text("sham-shipment-origin-date", &parcelData.StatusDescription),
 		chromedp.Text("div[class='__c-heading __c-heading--h4 __c-heading--bold __u-mb--none']", &parcelData.TrackingNumber),
-		chromedp.Evaluate(jsTimeline, &parcelData.Timeline),
+		chromedp.Evaluate(jsTimeline, &timeline),
 	)
+
+	parcelData.Timeline = getPostaHrTimelineData(timeline)
 
 	if foundData == "" {
 		chromedp.Stop()
@@ -78,4 +91,29 @@ func GetPostaHrData(parcelNumber string) (*ParcelData, bool) {
 	}
 
 	return &parcelData, true
+}
+
+func getPostaHrTimelineData(phrTimeline []postaHrTimelineEntry) *[]timelineEntry {
+	var parsedTimeline []timelineEntry
+
+	for i, item := range phrTimeline {
+		entry := timelineEntry{}
+
+		entry.Description = item.Description
+		//Add indices in reversed order
+		entry.ID = strconv.Itoa(i)
+		entry.Location = item.Location
+		entry.Status = item.Status
+
+		layout := "1/2/2006T15:04:05 PM"
+		t, err := time.Parse(layout, item.Date+"T"+item.Time)
+		entry.Time = t
+		if err != nil {
+			log.Println(err)
+		}
+		// parsedTimeline = append(parsedTimeline, entry)
+		parsedTimeline = append([]timelineEntry{entry}, parsedTimeline...)
+	}
+
+	return &parsedTimeline
 }

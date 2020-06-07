@@ -4,13 +4,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/html"
 )
+
+type gcTimelineEntry struct {
+	Date        string   `json:"date"`
+	Description string   `json:"description" mapstructure:"desc"`
+	ID          string   `json:"id"`
+	Location    *address `json:"location"`
+	Status      string   `json:"status"`
+	Time        string   `json:"time"`
+}
 
 // GetGlobalCanaioData func
 func GetGlobalCanaioData(parcelNumber string) (*ParcelData, bool) {
@@ -57,31 +68,23 @@ func mapData(data []byte) (*ParcelData, bool) {
 	var result map[string]interface{}
 	json.Unmarshal(data, &result)
 
+	var timeline []gcTimelineEntry
+
 	parcelData := ParcelData{
 		Provider: "GlobalCanaio",
 	}
 	parcelData.To = &address{Country: result["destCountry"].(string)}
 	parcelData.LastUpdated = result["cachedTime"].(string)
-	// mapstructure.Decode(result["latestTrackingInfo"].(map[string]interface{}), &parcelData.LatestTrackingInfo)
 	parcelData.From = &address{Country: result["originCountry"].(string)}
 	parcelData.ShippingDaysCount = result["shippingTime"].(float64)
 	parcelData.Status = result["status"].(string)
 	parcelData.StatusDescription = result["statusDesc"].(string)
-	mapstructure.Decode(result["section2"].(map[string]interface{})["detailList"], &parcelData.Timeline)
+	mapstructure.Decode(result["section2"].(map[string]interface{})["detailList"], &timeline)
 	parcelData.TrackingNumber = result["mailNo"].(string)
 
-	latestTrackingInfo := result["latestTrackingInfo"].(map[string]interface{})
+	parcelData.Timeline = getGCTimelineData(timeline)
 
-	parcelData.LatestTrackingInfo = &timelineEntry{
-		// Date        string `json:"date"`
-		Description: latestTrackingInfo["desc"].(string),
-		// ID          string `json:"id"`
-		Status:   latestTrackingInfo["status"].(string),
-		Time:     latestTrackingInfo["time"].(string),
-		TimeZone: latestTrackingInfo["timeZone"].(string),
-	}
 	historyLen := len(*parcelData.Timeline)
-	parcelData.LatestTrackingInfo.ID = strconv.Itoa(historyLen - 1)
 
 	//Add indexes in reversed order
 	for i := range *parcelData.Timeline {
@@ -92,4 +95,28 @@ func mapData(data []byte) (*ParcelData, bool) {
 
 	return &parcelData, true
 
+}
+
+func getGCTimelineData(gcTimeline []gcTimelineEntry) *[]timelineEntry {
+	var parsedTimeline []timelineEntry
+	timelineLen := len(gcTimeline)
+
+	for i, item := range gcTimeline {
+		entry := timelineEntry{}
+
+		entry.Description = item.Description
+		//Add indices in reversed order
+		entry.ID = strconv.Itoa(timelineLen - 1 - i)
+		entry.Location = item.Location
+		entry.Status = item.Status
+
+		layout := "2006-01-02 15:04:05"
+		t, err := time.Parse(layout, item.Time)
+		entry.Time = t
+		if err != nil {
+			log.Println(err)
+		}
+		parsedTimeline = append(parsedTimeline, entry)
+	}
+	return &parsedTimeline
 }
