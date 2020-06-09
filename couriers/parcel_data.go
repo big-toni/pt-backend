@@ -9,7 +9,7 @@ type address struct {
 }
 
 type timelineEntry struct {
-	Description string    `json:"description" mapstructure:"desc"`
+	Description string    `json:"description"`
 	ID          string    `json:"id"`
 	Location    *address  `json:"location"`
 	Status      string    `json:"status"`
