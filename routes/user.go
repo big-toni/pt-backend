@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 
 	"log"
 	"net/http"
 
+	"pt-server/database"
 	"pt-server/services"
 
 	"github.com/gorilla/mux"
@@ -68,15 +70,66 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// log.Printf("Authenticate user\nemail: %s\npassword: %s", creds.Email, creds.Password)
+	us := services.NewUserService(database.NewUserDAO())
+	existingUser := us.GetUserForEmail(creds.Email)
 
-	tokenString, err := services.CreateToken(creds.Email, creds.Password)
+	if existingUser == nil {
+		http.Error(w, ("Wrong password or username!"), http.StatusBadRequest)
+		return
+	}
+
+	passwordHash := sha256.Sum256([]byte(creds.Password))
+	passwordHashString := string(passwordHash[:])
+
+	expectedPassword := existingUser.PasswordHash
+
+	if expectedPassword != passwordHashString {
+		http.Error(w, ("Wrong password!"), http.StatusBadRequest)
+		return
+	}
+
+	s := services.NewTokenService(database.NewTokenDAO())
+
+	tokenString, err := s.CreateToken(creds.Email, existingUser.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	services.SaveToken(tokenString)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response{tokenString})
+}
+
+// SignUp func
+func SignUp(w http.ResponseWriter, r *http.Request) {
+	var creds Credentials
+	err := json.NewDecoder(r.Body).Decode(&creds)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	us := services.NewUserService(database.NewUserDAO())
+	existingUser := us.GetUserForEmail(creds.Email)
+
+	if existingUser != nil {
+		http.Error(w, ("User already exists!"), http.StatusBadRequest)
+		return
+	}
+
+	passwordHash := sha256.Sum256([]byte(creds.Password))
+	passwordHashString := string(passwordHash[:])
+
+	userID := us.CreateUser(creds.Email, passwordHashString)
+
+	s := services.NewTokenService(database.NewTokenDAO())
+
+	tokenString, err := s.CreateToken(creds.Email, userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
