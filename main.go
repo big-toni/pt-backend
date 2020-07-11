@@ -10,6 +10,8 @@ import (
 	"pt-server/routes"
 	"pt-server/services"
 
+	"pt-server/database"
+
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 )
@@ -18,6 +20,8 @@ func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Print("No .env file found")
 	}
+
+	database.Connect()
 }
 
 func main() {
@@ -34,6 +38,7 @@ func main() {
 	auth := api.PathPrefix("/auth").Subrouter()
 	auth.Use(loggingMiddleware)
 	auth.HandleFunc("/login", routes.Login)
+	auth.HandleFunc("/signup", routes.SignUp)
 
 	account := api.PathPrefix("/account").Subrouter()
 	account.Use(authMiddleware)
@@ -53,15 +58,6 @@ func main() {
 	}
 
 	http.ListenAndServe(":"+port, router)
-
-	// router := gin.New()
-	// router.Use(gin.Logger())
-	// router.LoadHTMLGlob("templates/*.tmpl.html")
-	// router.Static("/static", "static")
-
-	// router.GET("/", func(c *gin.Context) {
-	// 	c.HTML(http.StatusOK, "index.tmpl.html", nil)
-	// })
 
 }
 
@@ -86,7 +82,8 @@ func authMiddleware(next http.Handler) http.Handler {
 		}
 
 		jwtToken := authArr[1]
-		authorised := services.AuthenticateUser(jwtToken)
+		s := services.NewUserService(database.NewUserDAO())
+		authorised := s.AuthenticateUser(jwtToken)
 
 		if !authorised {
 			w.WriteHeader(http.StatusUnauthorized)
