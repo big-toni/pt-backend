@@ -3,6 +3,7 @@ package routes
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"strings"
 
 	"log"
 	"net/http"
@@ -29,41 +30,11 @@ func User(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(json)
-	// fmt.Fprintf(w, "User: %v\n", vars["id"])
-}
-
-// Account func
-func Account(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-
-	json, err := json.Marshal(struct {
-		ID    string `json:"id"`
-		Email string `json:"email"`
-	}{
-		"testid",
-		"test@email.com",
-	})
-
-	if err != nil {
-		log.Println(err)
-	}
-
-	w.Write(json)
-}
-
-// Credentials type
-type Credentials struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type response struct {
-	Token string `json:"token"`
 }
 
 // Login func
 func Login(w http.ResponseWriter, r *http.Request) {
-	var creds Credentials
+	var creds services.Credentials
 	err := json.NewDecoder(r.Body).Decode(&creds)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -98,12 +69,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response{tokenString})
+	json.NewEncoder(w).Encode(struct {
+		Token string `json:"token"`
+	}{
+		tokenString,
+	})
 }
 
 // SignUp func
 func SignUp(w http.ResponseWriter, r *http.Request) {
-	var creds Credentials
+	var creds services.Credentials
 	err := json.NewDecoder(r.Body).Decode(&creds)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -133,5 +108,31 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response{tokenString})
+	json.NewEncoder(w).Encode(struct {
+		Token string `json:"token"`
+	}{
+		tokenString,
+	})
+}
+
+// Account func
+func Account(w http.ResponseWriter, r *http.Request) {
+	authToken := r.Header.Get("Authorization")
+	authArr := strings.Split(authToken, " ")
+
+	jwtToken := authArr[1]
+
+	ts := services.NewTokenService(database.NewTokenDAO())
+	userID := ts.GetUserID(jwtToken)
+	if userID == nil {
+		http.Error(w, ("Found no user id with token"), http.StatusBadRequest)
+		return
+	}
+
+	us := services.NewUserService(database.NewUserDAO())
+	user := us.GetUser(*userID)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
 }

@@ -4,9 +4,35 @@ import (
 	"encoding/json"
 	"log"
 	"pt-server/couriers"
+	"pt-server/database/models"
 	"sync"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+// ParcelDAO interface
+type ParcelDAO interface {
+	Save(parcel models.Parcel) primitive.ObjectID
+	GetParcelsForUserID(userID primitive.ObjectID) []*models.Parcel
+}
+
+// ParcelService struct
+type ParcelService struct {
+	dao ParcelDAO
+}
+
+// ParcelInfo type
+type ParcelInfo struct {
+	Description    string `json:"description"`
+	Name           string `json:"name"`
+	TrackingNumber string `json:"trackingNumber"`
+}
+
+// NewParcelService creates a new ParcelService with the given parcel DAO.
+func NewParcelService(dao ParcelDAO) *ParcelService {
+	return &ParcelService{dao}
+}
 
 // GetParcelData func
 func GetParcelData(parcelNumber string) ([]byte, bool) {
@@ -63,4 +89,28 @@ func ResolveCourier(parcelNumber string) ([]string, bool) {
 func timeTrack(start time.Time, name string) {
 	elapsed := time.Since(start)
 	log.Printf("%s finished with execution time %s", name, elapsed)
+}
+
+// AddParcel func
+func (s *ParcelService) AddParcel(parcelInfo ParcelInfo, userID primitive.ObjectID) (primitive.ObjectID, error) {
+	dbParcel := models.Parcel{
+		Model: models.Model{
+			ID:        primitive.ObjectID{},
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		Description:    parcelInfo.Description,
+		Name:           parcelInfo.Name,
+		TrackingNumber: parcelInfo.TrackingNumber,
+		UserID:         userID,
+	}
+
+	savedID := s.dao.Save(dbParcel)
+
+	return savedID, nil
+}
+
+// GetParcels func
+func (s *ParcelService) GetParcels(userID primitive.ObjectID) []*models.Parcel {
+	return s.dao.GetParcelsForUserID(userID)
 }

@@ -40,16 +40,20 @@ func main() {
 	auth.HandleFunc("/login", routes.Login)
 	auth.HandleFunc("/signup", routes.SignUp)
 
-	account := api.PathPrefix("/account").Subrouter()
-	account.Use(authMiddleware)
+	users := api.PathPrefix("/users").Subrouter()
+	users.Use(authMiddleware)
+
+	account := users.PathPrefix("/account").Subrouter()
 	account.HandleFunc("/data", routes.Account)
-	account.HandleFunc("/user/{id:[0-9]+}/", routes.User)
 
 	parcels := api.PathPrefix("/parcels").Subrouter()
 	parcels.Use(authMiddleware)
 
 	parcels.HandleFunc("/data/{trackingNumber:[a-zA-Z0-9]+}/", routes.Parcel)
 	parcels.HandleFunc("/courier/{trackingNumber:[a-zA-Z0-9]+}/", routes.Courier)
+
+	parcels.HandleFunc("/add/{userId:[a-zA-Z0-9]+}/", routes.AddParcels)
+	parcels.HandleFunc("/get/{userId:[a-zA-Z0-9]+}/", routes.GetParcels)
 
 	port := os.Getenv("PORT")
 

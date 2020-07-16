@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"pt-server/models"
+	"pt-server/database/models"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
