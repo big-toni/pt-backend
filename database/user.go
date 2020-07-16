@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"pt-server/models"
+	"pt-server/database/models"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -55,24 +55,17 @@ func (dao *UserDAO) GetUserForEmail(email string) *models.User {
 }
 
 // GetUserByID func
-func (dao *UserDAO) GetUserByID(ID primitive.ObjectID) models.User {
+func (dao *UserDAO) GetUserByID(ID primitive.ObjectID) *models.User {
 	var user models.User
-
-	// userID, err := primitive.ObjectIDFromHex(ID)
-	// if err != nil {
-	// 	log.Println("Invalid ObjectID")
-	// }
-
 	filter := bson.M{"_id": ID}
-
 	collection := Database.Collection("users")
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	err := collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
-		log.Fatal(err)
+		return nil
 	}
 
 	fmt.Printf("Found a single document: %+v\n", user)
 
-	return user
+	return &user
 }

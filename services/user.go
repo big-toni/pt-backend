@@ -4,24 +4,31 @@ import (
 	"errors"
 	"log"
 	"os"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"pt-server/database"
-	"pt-server/models"
+	"pt-server/database/models"
 )
 
 // UserDAO interface
 type UserDAO interface {
 	GetUserForEmail(email string) *models.User
-	GetUserByID(ID primitive.ObjectID) models.User
+	GetUserByID(ID primitive.ObjectID) *models.User
 	Save(user models.User) primitive.ObjectID
 }
 
 // UserService struct
 type UserService struct {
 	dao UserDAO
+}
+
+// Credentials type
+type Credentials struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 // NewUserService creates a new UserService with the given user DAO.
@@ -82,6 +89,11 @@ func (s *UserService) AuthenticateUser(tknStr string) bool {
 func (s *UserService) CreateUser(email string, password string) primitive.ObjectID {
 
 	dbUser := models.User{
+		Model: models.Model{
+			ID:        primitive.NewObjectID(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
 		Email:        email,
 		PasswordHash: password,
 	}
@@ -94,4 +106,9 @@ func (s *UserService) CreateUser(email string, password string) primitive.Object
 // GetUserForEmail func
 func (s *UserService) GetUserForEmail(email string) *models.User {
 	return s.dao.GetUserForEmail(email)
+}
+
+// GetUser func
+func (s *UserService) GetUser(id primitive.ObjectID) *models.User {
+	return s.dao.GetUserByID(id)
 }
