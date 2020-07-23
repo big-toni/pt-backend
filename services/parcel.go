@@ -13,8 +13,10 @@ import (
 
 // ParcelDAO interface
 type ParcelDAO interface {
-	Save(parcel models.Parcel) primitive.ObjectID
+	Save(parcel []models.Parcel) []primitive.ObjectID
 	GetParcelsForUserID(userID primitive.ObjectID) []*models.Parcel
+	Update(parcel models.Parcel) primitive.ObjectID
+	Delete(parcel models.Parcel) primitive.ObjectID
 }
 
 // ParcelService struct
@@ -91,26 +93,44 @@ func timeTrack(start time.Time, name string) {
 	log.Printf("%s finished with execution time %s", name, elapsed)
 }
 
-// AddParcel func
-func (s *ParcelService) AddParcel(parcelInfo ParcelInfo, userID primitive.ObjectID) (primitive.ObjectID, error) {
-	dbParcel := models.Parcel{
-		Model: models.Model{
-			ID:        primitive.ObjectID{},
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
-		Description:    parcelInfo.Description,
-		Name:           parcelInfo.Name,
-		TrackingNumber: parcelInfo.TrackingNumber,
-		UserID:         userID,
+// AddParcels func
+func (s *ParcelService) AddParcels(parcelInfos []ParcelInfo, userID primitive.ObjectID) ([]primitive.ObjectID, error) {
+	var parcels []models.Parcel
+
+	for _, item := range parcelInfos {
+
+		dbParcel := models.Parcel{
+			Model: models.Model{
+				ID:        primitive.ObjectID{},
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			Description:    item.Description,
+			Name:           item.Name,
+			TrackingNumber: item.TrackingNumber,
+			UserID:         userID,
+		}
+		parcels = append(parcels, dbParcel)
 	}
 
-	savedID := s.dao.Save(dbParcel)
+	savedIDs := s.dao.Save(parcels)
 
-	return savedID, nil
+	return savedIDs, nil
 }
 
 // GetParcels func
 func (s *ParcelService) GetParcels(userID primitive.ObjectID) []*models.Parcel {
 	return s.dao.GetParcelsForUserID(userID)
+}
+
+// UpdateParcel func
+func (s *ParcelService) UpdateParcel(parcel models.Parcel) (primitive.ObjectID, error) {
+	updatedID := s.dao.Update(parcel)
+	return updatedID, nil
+}
+
+// DeleteParcel func
+func (s *ParcelService) DeleteParcel(parcel models.Parcel) (primitive.ObjectID, error) {
+	deletedID := s.dao.Delete(parcel)
+	return deletedID, nil
 }
