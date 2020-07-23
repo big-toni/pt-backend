@@ -24,7 +24,12 @@ func NewParcelDAO() *ParcelDAO {
 func (dao *ParcelDAO) GetParcelsForUserID(userID primitive.ObjectID) []*models.Parcel {
 	var documents []*models.Parcel
 	collection := Database.Collection("parcels")
-	filter := bson.M{"user_id": userID}
+	filter := bson.M{
+		"user_id": userID,
+		"deleted_at": bson.M{
+			"$exists": false,
+		},
+	}
 
 	findOptions := options.Find()
 	// Sort by `createdAt` field descending
@@ -51,17 +56,88 @@ func (dao *ParcelDAO) GetParcelsForUserID(userID primitive.ObjectID) []*models.P
 }
 
 // Save func
-func (dao *ParcelDAO) Save(parcel models.Parcel) primitive.ObjectID {
+func (dao *ParcelDAO) Save(parcels []models.Parcel) []primitive.ObjectID {
 	collection := Database.Collection("parcels")
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := collection.InsertOne(ctx, parcel)
+
+	y := make([]interface{}, len(parcels))
+	for i, v := range parcels {
+		y[i] = v
+	}
+
+	res, err := collection.InsertMany(ctx, y)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	id := res.InsertedID.(primitive.ObjectID)
-	fmt.Println("Inserted a single document: ", id)
+	var ids []primitive.ObjectID
 
-	return id
+	for _, id := range res.InsertedIDs {
+		ids = append(ids, id.(primitive.ObjectID))
+	}
+
+	fmt.Println("Inserted documents: ", ids)
+
+	return ids
+}
+
+// Update func
+func (dao *ParcelDAO) Update(parcel models.Parcel) primitive.ObjectID {
+	collection := Database.Collection("parcels")
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	filter := bson.M{"_id": parcel.Model.ID}
+
+	update := bson.M{
+		"$set": bson.M{
+			"description": parcel.Description,
+			"name":        parcel.Name,
+			"timeline":    parcel.Timeline,
+			"updated_at":  time.Now(),
+		},
+	}
+
+	res, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if res.MatchedCount == 0 {
+		return primitive.NilObjectID
+	}
+
+	fmt.Println("Updated document: ", parcel.Model.ID)
+
+	return parcel.Model.ID
+}
+
+// Delete func
+func (dao *ParcelDAO) Delete(parcel models.Parcel) primitive.ObjectID {
+	collection := Database.Collection("parcels")
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	filter := bson.M{"_id": parcel.Model.ID}
+
+	update := bson.M{
+		"$set": bson.M{
+			"updated_at": time.Now(),
+			"deleted_at": time.Now(),
+		},
+	}
+
+	res, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if res.MatchedCount == 0 {
+		return primitive.NilObjectID
+	}
+
+	fmt.Println("Deleted document: ", parcel.Model.ID)
+
+	return parcel.Model.ID
 }

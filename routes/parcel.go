@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"pt-server/database"
+	"pt-server/database/models"
 	"pt-server/services"
 
 	"github.com/gorilla/mux"
@@ -47,9 +48,7 @@ func AddParcels(w http.ResponseWriter, r *http.Request) {
 
 	dbUserID, _ := primitive.ObjectIDFromHex(userID)
 
-	for _, pInfo := range pInfos {
-		ps.AddParcel(pInfo, dbUserID)
-	}
+	ps.AddParcels(pInfos, dbUserID)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -67,4 +66,38 @@ func GetParcels(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(parcels)
+}
+
+// EditParcel func
+func EditParcel(w http.ResponseWriter, r *http.Request) {
+	var dbParcel models.Parcel
+	err := json.NewDecoder(r.Body).Decode(&dbParcel)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	ps := services.NewParcelService(database.NewParcelDAO())
+	id, err := ps.UpdateParcel(dbParcel)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(id)
+}
+
+// DeleteParcel func
+func DeleteParcel(w http.ResponseWriter, r *http.Request) {
+	var dbParcel models.Parcel
+	err := json.NewDecoder(r.Body).Decode(&dbParcel)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	ps := services.NewParcelService(database.NewParcelDAO())
+	id, err := ps.DeleteParcel(dbParcel)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(id)
 }
