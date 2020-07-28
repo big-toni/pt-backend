@@ -49,7 +49,7 @@ func (dao *UserDAO) GetUserForEmail(email string) *models.User {
 		return nil
 	}
 
-	fmt.Printf("Found a single document: %+v\n", user)
+	fmt.Printf("Found a single document: %+v\n", user.ID)
 
 	return &user
 }
@@ -65,7 +65,7 @@ func (dao *UserDAO) GetUserByID(ID primitive.ObjectID) *models.User {
 		return nil
 	}
 
-	fmt.Printf("Found a single document: %+v\n", user)
+	fmt.Printf("Found a single document: %+v\n", user.ID)
 
 	return &user
 }

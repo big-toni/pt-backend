@@ -114,12 +114,18 @@ func (dao *ParcelDAO) Update(parcel models.Parcel) primitive.ObjectID {
 }
 
 // Delete func
-func (dao *ParcelDAO) Delete(parcel models.Parcel) primitive.ObjectID {
+func (dao *ParcelDAO) Delete(parcels []models.Parcel) []primitive.ObjectID {
 	collection := Database.Collection("parcels")
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
-	filter := bson.M{"_id": parcel.Model.ID}
+	var filterIDs []primitive.ObjectID
+
+	for _, parcel := range parcels {
+		filterIDs = append(filterIDs, parcel.ID)
+	}
+
+	filter := bson.M{"_id": bson.M{"$in": filterIDs}}
 
 	update := bson.M{
 		"$set": bson.M{
@@ -128,16 +134,18 @@ func (dao *ParcelDAO) Delete(parcel models.Parcel) primitive.ObjectID {
 		},
 	}
 
-	res, err := collection.UpdateOne(ctx, filter, update)
+	res, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	var ids []primitive.ObjectID
+
 	if res.MatchedCount == 0 {
-		return primitive.NilObjectID
+		return []primitive.ObjectID{primitive.NilObjectID}
 	}
 
-	fmt.Println("Deleted document: ", parcel.Model.ID)
+	fmt.Println("Deleted documents: ", ids)
 
-	return parcel.Model.ID
+	return ids
 }

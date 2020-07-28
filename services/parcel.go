@@ -16,7 +16,7 @@ type ParcelDAO interface {
 	Save(parcel []models.Parcel) []primitive.ObjectID
 	GetParcelsForUserID(userID primitive.ObjectID) []*models.Parcel
 	Update(parcel models.Parcel) primitive.ObjectID
-	Delete(parcel models.Parcel) primitive.ObjectID
+	Delete(parcel []models.Parcel) []primitive.ObjectID
 }
 
 // ParcelService struct
@@ -129,8 +129,8 @@ func (s *ParcelService) UpdateParcel(parcel models.Parcel) (primitive.ObjectID, 
 	return updatedID, nil
 }
 
-// DeleteParcel func
-func (s *ParcelService) DeleteParcel(parcel models.Parcel) (primitive.ObjectID, error) {
-	deletedID := s.dao.Delete(parcel)
-	return deletedID, nil
+// DeleteParcels func
+func (s *ParcelService) DeleteParcels(parcels []models.Parcel) ([]primitive.ObjectID, error) {
+	deletedIDs := s.dao.Delete(parcels)
+	return deletedIDs, nil
 }

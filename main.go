@@ -55,7 +55,7 @@ func main() {
 	parcels.HandleFunc("/add/{userId:[a-zA-Z0-9]+}/", routes.AddParcels)
 	parcels.HandleFunc("/get/{userId:[a-zA-Z0-9]+}/", routes.GetParcels)
 	parcels.HandleFunc("/edit", routes.EditParcel)
-	parcels.HandleFunc("/delete", routes.DeleteParcel)
+	parcels.HandleFunc("/delete", routes.DeleteParcels)
 
 	port := os.Getenv("PORT")
 

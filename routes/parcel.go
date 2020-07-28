@@ -85,17 +85,17 @@ func EditParcel(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(id)
 }
 
-// DeleteParcel func
-func DeleteParcel(w http.ResponseWriter, r *http.Request) {
-	var dbParcel models.Parcel
-	err := json.NewDecoder(r.Body).Decode(&dbParcel)
+// DeleteParcels func
+func DeleteParcels(w http.ResponseWriter, r *http.Request) {
+	var dbParcels []models.Parcel
+	err := json.NewDecoder(r.Body).Decode(&dbParcels)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	ps := services.NewParcelService(database.NewParcelDAO())
-	id, err := ps.DeleteParcel(dbParcel)
+	id, err := ps.DeleteParcels(dbParcels)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
