@@ -27,35 +27,34 @@ func init() {
 func main() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/", routes.Root)
 	router.Use(loggingMiddleware)
 
-	web := router.PathPrefix("/").Subrouter()
-	web.HandleFunc("/", routes.Root)
+	// web := router.PathPrefix("/").Subrouter()
+	// web.HandleFunc("/", routes.Root).Methods("GET")
 	// admin := router.PathPrefix("/admin").Subrouter()
 	api := router.PathPrefix("/api").Subrouter()
 
 	auth := api.PathPrefix("/auth").Subrouter()
 	auth.Use(loggingMiddleware)
-	auth.HandleFunc("/login", routes.Login)
-	auth.HandleFunc("/signup", routes.SignUp)
+	auth.HandleFunc("/login", routes.Login).Methods("POST")
+	auth.HandleFunc("/signup", routes.SignUp).Methods("POST")
 
 	users := api.PathPrefix("/users").Subrouter()
 	users.Use(authMiddleware)
 
 	account := users.PathPrefix("/account").Subrouter()
-	account.HandleFunc("/data", routes.Account)
+	account.HandleFunc("/data", routes.Account).Methods("GET")
 
 	parcels := api.PathPrefix("/parcels").Subrouter()
 	parcels.Use(authMiddleware)
 
-	parcels.HandleFunc("/data/{trackingNumber:[a-zA-Z0-9]+}/", routes.Parcel)
-	parcels.HandleFunc("/courier/{trackingNumber:[a-zA-Z0-9]+}/", routes.Courier)
+	parcels.HandleFunc("/data/{trackingNumber:[a-zA-Z0-9]+}/", routes.Parcel).Methods("GET")
+	parcels.HandleFunc("/courier/{trackingNumber:[a-zA-Z0-9]+}/", routes.Courier).Methods("GET")
 
-	parcels.HandleFunc("/add/{userId:[a-zA-Z0-9]+}/", routes.AddParcels)
-	parcels.HandleFunc("/get/{userId:[a-zA-Z0-9]+}/", routes.GetParcels)
-	parcels.HandleFunc("/edit", routes.EditParcel)
-	parcels.HandleFunc("/delete", routes.DeleteParcels)
+	parcels.HandleFunc("/{userId:[a-zA-Z0-9]+}/", routes.AddParcels).Methods("POST")
+	parcels.HandleFunc("/{userId:[a-zA-Z0-9]+}/", routes.GetParcels).Methods("GET")
+	parcels.HandleFunc("/", routes.DeleteParcels).Methods("DELETE")
+	parcels.HandleFunc("/", routes.EditParcel).Methods("PATCH")
 
 	port := os.Getenv("PORT")
 
