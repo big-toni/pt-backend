@@ -1,1 +1,1 @@
-web: bin/pt-server
+web: pmgo start ./ pt-server
