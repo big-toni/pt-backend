@@ -15,7 +15,7 @@ import (
 type postaHrTimelineEntry struct {
 	Date        string   `json:"date"`
 	Description string   `json:"description"`
-	ID          string   `json:"id"`
+	Index       string   `json:"index"`
 	Location    *address `json:"location"`
 	Status      string   `json:"status"`
 	Time        string   `json:"time"`
@@ -101,7 +101,7 @@ func getPostaHrTimelineData(phrTimeline []postaHrTimelineEntry) *[]timelineEntry
 
 		entry.Description = item.Description
 		//Add indices in reversed order
-		entry.ID = strconv.Itoa(i)
+		entry.Index = strconv.Itoa(i)
 		entry.Location = item.Location
 		entry.Status = item.Status
 

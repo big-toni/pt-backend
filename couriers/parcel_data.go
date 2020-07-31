@@ -10,7 +10,7 @@ type address struct {
 
 type timelineEntry struct {
 	Description string    `json:"description"`
-	ID          string    `json:"id"`
+	Index       string    `json:"index"`
 	Location    *address  `json:"location"`
 	Status      string    `json:"status"`
 	Time        time.Time `json:"time"`
