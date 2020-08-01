@@ -14,6 +14,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+var parcelService = services.NewParcelService(database.NewParcelDAO())
+
 // Parcel func
 func Parcel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -44,11 +46,9 @@ func AddParcels(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ps := services.NewParcelService(database.NewParcelDAO())
-
 	dbUserID, _ := primitive.ObjectIDFromHex(userID)
 
-	ps.AddParcels(pInfos, dbUserID)
+	parcelService.AddParcels(pInfos, dbUserID)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -60,8 +60,7 @@ func GetParcels(w http.ResponseWriter, r *http.Request) {
 	userID := vars["userId"]
 
 	dbUserID, _ := primitive.ObjectIDFromHex(userID)
-	ps := services.NewParcelService(database.NewParcelDAO())
-	parcels := ps.GetParcels(dbUserID)
+	parcels := parcelService.GetParcels(dbUserID)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -77,8 +76,7 @@ func EditParcel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ps := services.NewParcelService(database.NewParcelDAO())
-	id, err := ps.UpdateParcel(dbParcel)
+	id, err := parcelService.UpdateParcel(dbParcel)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -94,8 +92,7 @@ func DeleteParcels(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ps := services.NewParcelService(database.NewParcelDAO())
-	id, err := ps.DeleteParcels(dbParcels)
+	id, err := parcelService.DeleteParcels(dbParcels)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
