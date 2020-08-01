@@ -61,7 +61,7 @@ func jsGetOrangeConnexTimeline(sel string) (js string) {
 }
 
 // GetOrangeConnexData func
-func GetOrangeConnexData(parcelNumber string) (*ParcelData, bool) {
+func GetOrangeConnexData(trackingNumber string) (*ParcelData, bool) {
 	// create chrome instance
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
@@ -73,7 +73,7 @@ func GetOrangeConnexData(parcelNumber string) (*ParcelData, bool) {
 	ctx, cancel = context.WithTimeout(ctx, 50*time.Second)
 	defer cancel()
 
-	urlString := fmt.Sprintf(`https://www.orangeconnex.com/tracking?language=en&trackingnumber=%s`, parcelNumber)
+	urlString := fmt.Sprintf(`https://www.orangeconnex.com/tracking?language=en&trackingnumber=%s`, trackingNumber)
 
 	timelineEvaluate := jsGetOrangeConnexTimeline("ul[class='timeline']")
 

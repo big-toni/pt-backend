@@ -37,33 +37,34 @@ func NewParcelService(dao ParcelDAO) *ParcelService {
 }
 
 // GetParcelData func
-func GetParcelData(parcelNumber string) ([]byte, bool) {
+func (s *ParcelService) GetParcelData(trackingNumber string) ([]byte, bool) {
+
 	ch := make(chan *couriers.ParcelData)
 	wg := &sync.WaitGroup{}
 	wg.Add(3)
 
 	var result []byte
 
-	log.Println("Searching data for parcelNumber:", parcelNumber)
+	log.Println("Searching data for trackingNumber:", trackingNumber)
 
 	go func(ch chan<- *couriers.ParcelData, wg *sync.WaitGroup) {
 		defer timeTrack(time.Now(), "GlobalCanaio data scraper")
 		log.Println("GlobalCanaio data scraper started")
-		gcParcelData, _ := couriers.GetGlobalCanaioData(parcelNumber)
+		gcParcelData, _ := couriers.GetGlobalCanaioData(trackingNumber)
 		ch <- gcParcelData
 	}(ch, wg)
 
 	go func(ch chan<- *couriers.ParcelData, wg *sync.WaitGroup) {
 		defer timeTrack(time.Now(), "OrangeConnex data scraper")
 		log.Println("OrangeConnex data scraper started")
-		ocParcelData, _ := couriers.GetOrangeConnexData(parcelNumber)
+		ocParcelData, _ := couriers.GetOrangeConnexData(trackingNumber)
 		ch <- ocParcelData
 	}(ch, wg)
 
 	go func(ch chan<- *couriers.ParcelData, wg *sync.WaitGroup) {
 		defer timeTrack(time.Now(), "PostaHr data scraper")
 		log.Println("PostaHr data scraper started")
-		phParcelData, _ := couriers.GetPostaHrData(parcelNumber)
+		phParcelData, _ := couriers.GetPostaHrData(trackingNumber)
 		ch <- phParcelData
 	}(ch, wg)
 
@@ -84,8 +85,8 @@ func GetParcelData(parcelNumber string) ([]byte, bool) {
 }
 
 // ResolveCourier func
-func ResolveCourier(parcelNumber string) ([]string, bool) {
-	return couriers.ResolveCourier(parcelNumber)
+func (s *ParcelService) ResolveCourier(trackingNumber string) ([]string, bool) {
+	return couriers.ResolveCourier(trackingNumber)
 }
 
 func timeTrack(start time.Time, name string) {

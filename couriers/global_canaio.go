@@ -24,8 +24,8 @@ type gcTimelineEntry struct {
 }
 
 // GetGlobalCanaioData func
-func GetGlobalCanaioData(parcelNumber string) (*ParcelData, bool) {
-	urlString := fmt.Sprintf("http://global.cainiao.com/detail.htm?mailNoList=%s", parcelNumber)
+func GetGlobalCanaioData(trackingNumber string) (*ParcelData, bool) {
+	urlString := fmt.Sprintf("http://global.cainiao.com/detail.htm?mailNoList=%s", trackingNumber)
 	resp, err := http.Get(urlString)
 	if err != nil {
 		return nil, false

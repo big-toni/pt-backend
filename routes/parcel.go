@@ -21,7 +21,7 @@ func Parcel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	data, _ := services.GetParcelData(vars["trackingNumber"])
+	data, _ := parcelService.GetParcelData(vars["trackingNumber"])
 	w.Write(data)
 }
 
@@ -30,7 +30,7 @@ func Courier(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	couriers, _ := services.ResolveCourier(vars["trackingNumber"])
+	couriers, _ := parcelService.ResolveCourier(vars["trackingNumber"])
 	fmt.Fprintf(w, "{ \"trackingNumber\": \"%v\",\"couriers\": %q }", vars["trackingNumber"], strings.Join(couriers, ", "))
 }
 

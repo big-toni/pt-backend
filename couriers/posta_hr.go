@@ -29,7 +29,7 @@ func jsGetPostHrTimeline(sel string) (js string) {
 }
 
 // GetPostaHrData func
-func GetPostaHrData(parcelNumber string) (*ParcelData, bool) {
+func GetPostaHrData(trackingNumber string) (*ParcelData, bool) {
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		// chromedp.Flag("headless", false),
 		chromedp.Flag("disable-gpu", false),
@@ -62,7 +62,7 @@ func GetPostaHrData(parcelNumber string) (*ParcelData, bool) {
 		chromedp.Navigate(urlString),
 		chromedp.WaitVisible("input[class='__c-form-field__text']"),
 		chromedp.Click("input[class='__c-form-field__text']"),
-		chromedp.SetValue("input[class='__c-form-field__text']", parcelNumber),
+		chromedp.SetValue("input[class='__c-form-field__text']", trackingNumber),
 		chromedp.Click("input[class='__c-form-field__text']"),
 		chromedp.Sleep(1*time.Second),
 		chromedp.Focus("input[class='__c-form-field__text']"),
