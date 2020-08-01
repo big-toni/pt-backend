@@ -77,7 +77,7 @@ func (dao *ParcelDAO) Save(parcels []models.Parcel) []primitive.ObjectID {
 		ids = append(ids, id.(primitive.ObjectID))
 	}
 
-	fmt.Println("Inserted documents: ", ids)
+	fmt.Printf("Inserted Parcels with IDs: %+v\n", ids)
 
 	return ids
 }
@@ -108,7 +108,7 @@ func (dao *ParcelDAO) Update(parcel models.Parcel) primitive.ObjectID {
 		return primitive.NilObjectID
 	}
 
-	fmt.Println("Updated document: ", parcel.Model.ID)
+	fmt.Printf("Updated Parcel with ID: %+v\n", parcel.Model.ID)
 
 	return parcel.Model.ID
 }
@@ -145,7 +145,7 @@ func (dao *ParcelDAO) Delete(parcels []models.Parcel) []primitive.ObjectID {
 		return []primitive.ObjectID{primitive.NilObjectID}
 	}
 
-	fmt.Println("Deleted documents: ", ids)
+	fmt.Printf("Deleted Parcels with IDs: %+v\n", ids)
 
 	return ids
 }

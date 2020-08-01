@@ -32,7 +32,7 @@ func (dao *UserDAO) Save(user models.User) primitive.ObjectID {
 	}
 
 	id := res.InsertedID.(primitive.ObjectID)
-	fmt.Println("Inserted a single document: ", id)
+	fmt.Printf("Inserted new User with ID: %+v\n", id)
 
 	return id
 }
@@ -49,7 +49,7 @@ func (dao *UserDAO) GetUserForEmail(email string) *models.User {
 		return nil
 	}
 
-	fmt.Printf("Found a single document: %+v\n", user.ID)
+	fmt.Printf("Found User with ID: %+v\n", user.ID)
 
 	return &user
 }
@@ -65,7 +65,7 @@ func (dao *UserDAO) GetUserByID(ID primitive.ObjectID) *models.User {
 		return nil
 	}
 
-	fmt.Printf("Found a single document: %+v\n", user.ID)
+	fmt.Printf("Found User with ID: %+v\n", user.ID)
 
 	return &user
 }

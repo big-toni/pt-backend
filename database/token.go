@@ -32,7 +32,7 @@ func (dao *TokenDAO) Save(token models.Token) string {
 		log.Fatal(err)
 	}
 	id := fmt.Sprintf("%v", res.InsertedID)
-	fmt.Println("Inserted a single document: ", id)
+	fmt.Printf("Inserted new Token with ID: %+v\n", id)
 
 	return id
 }
@@ -49,6 +49,8 @@ func (dao *TokenDAO) GetUserID(tokenHash string) *primitive.ObjectID {
 		log.Println(err)
 		return nil
 	}
+
+	fmt.Printf("Found Token with UserID: %+v\n", document.UserID)
 
 	return &document.UserID
 }
