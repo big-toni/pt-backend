@@ -14,6 +14,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var userService = services.NewUserService(database.NewUserDAO())
+
 // User func
 func User(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -41,8 +43,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	us := services.NewUserService(database.NewUserDAO())
-	existingUser := us.GetUserForEmail(creds.Email)
+	existingUser := userService.GetUserForEmail(creds.Email)
 
 	if existingUser == nil {
 		http.Error(w, ("Wrong password or username!"), http.StatusBadRequest)
@@ -85,8 +86,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	us := services.NewUserService(database.NewUserDAO())
-	existingUser := us.GetUserForEmail(creds.Email)
+	existingUser := userService.GetUserForEmail(creds.Email)
 
 	if existingUser != nil {
 		http.Error(w, ("User already exists!"), http.StatusBadRequest)
@@ -96,7 +96,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	passwordHash := sha256.Sum256([]byte(creds.Password))
 	passwordHashString := string(passwordHash[:])
 
-	userID := us.CreateUser(creds.Email, passwordHashString)
+	userID := userService.CreateUser(creds.Email, passwordHashString)
 
 	s := services.NewTokenService(database.NewTokenDAO())
 
@@ -129,8 +129,7 @@ func Account(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	us := services.NewUserService(database.NewUserDAO())
-	user := us.GetUser(*userID)
+	user := userService.GetUser(*userID)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
