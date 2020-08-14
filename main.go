@@ -38,6 +38,8 @@ func main() {
 	auth.Use(loggingMiddleware)
 	auth.HandleFunc("/login", routes.Login).Methods("POST")
 	auth.HandleFunc("/signup", routes.SignUp).Methods("POST")
+	auth.HandleFunc("/reset/{key}/", routes.Reset).Methods("GET", "POST")
+	auth.HandleFunc("/forgot", routes.Forgot).Methods("POST")
 
 	users := api.PathPrefix("/users").Subrouter()
 	users.Use(authMiddleware)

@@ -3,10 +3,13 @@ package routes
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"os"
 	"strings"
+	"text/template"
 
 	"log"
 	"net/http"
+	"net/url"
 
 	"pt-server/database"
 	"pt-server/services"
@@ -15,6 +18,7 @@ import (
 )
 
 var userService = services.NewUserService(database.NewUserDAO())
+var tokenService = services.NewTokenService(database.NewTokenDAO())
 
 // User func
 func User(w http.ResponseWriter, r *http.Request) {
@@ -113,6 +117,81 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	}{
 		tokenString,
 	})
+}
+
+// Reset func
+func Reset(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("helpers/resetForm.html"))
+	if r.Method != http.MethodPost {
+		tmpl.Execute(w, nil)
+		return
+	}
+
+	vars := mux.Vars(r)
+
+	tknStr, _ := url.QueryUnescape(vars["key"])
+	isValid, claims := tokenService.ValidateToken(tknStr)
+
+	email := claims.Subject
+
+	if isValid {
+		log.Println("verified: ", email)
+	}
+
+	details := services.Credentials{
+		Password: r.FormValue("password"),
+	}
+
+	// do something with details
+	_ = details
+
+	userService.UpdatePassword(email, details.Password)
+
+	tmpl.Execute(w, struct{ Success bool }{true})
+
+	return
+}
+
+func outputHTML(w http.ResponseWriter, filename string, data interface{}) {
+	t, err := template.ParseFiles(filename)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	if err := t.Execute(w, data); err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+}
+
+// Forgot func
+func Forgot(w http.ResponseWriter, r *http.Request) {
+	var creds services.Credentials
+	err := json.NewDecoder(r.Body).Decode(&creds)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	existingUser := userService.GetUserForEmail(creds.Email)
+
+	jwt, err := tokenService.CreatePasswordResetToken(existingUser.Email, existingUser.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if existingUser != nil {
+		emailService := services.NewEmailService()
+		key := url.QueryEscape(jwt)
+		baseURL := os.Getenv("URL")
+		resetURL := baseURL + "/api/auth/reset/" + key + "/"
+
+		emailService.SendResetEmail(existingUser.Email, resetURL)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
 // Account func
