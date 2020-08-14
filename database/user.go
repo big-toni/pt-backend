@@ -69,3 +69,31 @@ func (dao *UserDAO) GetUserByID(ID primitive.ObjectID) *models.User {
 
 	return &user
 }
+
+// Update func
+func (dao *UserDAO) Update(user models.User) primitive.ObjectID {
+	collection := Database.Collection("users")
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	filter := bson.M{"_id": user.Model.ID}
+
+	update := bson.M{
+		"$set": bson.M{
+			"email":         user.Email,
+			"password_hash": user.PasswordHash,
+			"updated_at":    time.Now(),
+		},
+	}
+
+	res, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if res.MatchedCount == 0 {
+		return primitive.NilObjectID
+	}
+
+	fmt.Printf("Updated User with ID: %+v\n", user.Model.ID)
+
+	return user.Model.ID
+}

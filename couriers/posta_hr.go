@@ -22,7 +22,7 @@ type postaHrTimelineEntry struct {
 }
 
 func jsGetPostHrTimeline(sel string) (js string) {
-	buf, _ := ioutil.ReadFile("jsHelpers/postaHr.js")
+	buf, _ := ioutil.ReadFile("helpers/postaHr.js")
 	funcJS := string(buf)
 	invokeFuncJS := `var a = getItems("` + sel + `"); a;`
 	return strings.Join([]string{funcJS, invokeFuncJS}, " ")

@@ -54,7 +54,7 @@ func jsGetDetails() (js string) {
 }
 
 func jsGetOrangeConnexTimeline(sel string) (js string) {
-	buf, _ := ioutil.ReadFile("jsHelpers/orangeConnex.js")
+	buf, _ := ioutil.ReadFile("helpers/orangeConnex.js")
 	funcJS := string(buf)
 	invokeFuncJS := `var a = getItems("` + sel + `"); a;`
 	return strings.Join([]string{funcJS, invokeFuncJS}, " ")
