@@ -31,10 +31,10 @@ func jsGetPostHrTimeline(sel string) (js string) {
 // GetPostaHrData func
 func GetPostaHrData(trackingNumber string) (*ParcelData, bool) {
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
-		// chromedp.Flag("headless", false),
-		chromedp.Flag("disable-gpu", false),
-		chromedp.Flag("enable-automation", false),
-		chromedp.Flag("disable-extensions", false),
+		chromedp.Flag("headless", true),
+		// chromedp.Flag("disable-gpu", false),
+		// chromedp.Flag("enable-automation", false),
+		// chromedp.Flag("disable-extensions", false),
 	)
 
 	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
