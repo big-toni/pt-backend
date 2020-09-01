@@ -1,6 +1,6 @@
 module pt-server
 
-go 1.14
+go 1.15
 
 require (
 	github.com/chromedp/cdproto v0.0.0-20200709115526-d1f6fc58448b // indirect
@@ -16,6 +16,7 @@ require (
 	github.com/sendgrid/sendgrid-go v3.6.2+incompatible
 	go.mongodb.org/mongo-driver v1.4.0
 	golang.org/x/net v0.0.0-20200822124328-c89045814202
-	golang.org/x/sys v0.0.0-20200828194041-157a740278f4 // indirect
+	golang.org/x/sys v0.0.0-20200831180312-196b9ba8737a // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
+	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
