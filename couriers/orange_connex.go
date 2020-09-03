@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"strconv"
 	"strings"
 	"time"
 
@@ -15,7 +14,7 @@ import (
 type orangeConnexTimelineEntry struct {
 	Date        string   `json:"date"`
 	Description string   `json:"description"`
-	Index       string   `json:"index"`
+	Index       int8     `json:"index"`
 	Location    *address `json:"location"`
 	Status      string   `json:"status"`
 	Time        string   `json:"time"`
@@ -116,7 +115,7 @@ func getOCTimelineData(ocTimeline []orangeConnexTimelineEntry) *[]timelineEntry 
 
 		entry.Description = item.Description
 		//Add indices in reversed order
-		entry.Index = strconv.Itoa(timelineLen - 1 - i)
+		entry.Index = int8(timelineLen - 1 - i)
 		entry.Location = item.Location
 		entry.Status = item.Status
 

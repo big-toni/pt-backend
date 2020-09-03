@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"strconv"
 	"strings"
 	"time"
 
@@ -15,7 +14,7 @@ import (
 type postaHrTimelineEntry struct {
 	Date        string   `json:"date"`
 	Description string   `json:"description"`
-	Index       string   `json:"index"`
+	Index       int8     `json:"index"`
 	Location    *address `json:"location"`
 	Status      string   `json:"status"`
 	Time        string   `json:"time"`
@@ -101,7 +100,7 @@ func getPostaHrTimelineData(phrTimeline []postaHrTimelineEntry) *[]timelineEntry
 
 		entry.Description = item.Description
 		//Add indices in reversed order
-		entry.Index = strconv.Itoa(i)
+		entry.Index = int8(i)
 		entry.Location = item.Location
 		entry.Status = item.Status
 

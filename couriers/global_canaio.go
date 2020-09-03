@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
@@ -17,7 +16,7 @@ import (
 type gcTimelineEntry struct {
 	Date        string   `json:"date"`
 	Description string   `json:"description" mapstructure:"desc"`
-	Index       string   `json:"index"`
+	Index       int8     `json:"index"`
 	Location    *address `json:"location"`
 	Status      string   `json:"status"`
 	Time        string   `json:"time"`
@@ -90,7 +89,7 @@ func mapData(data []byte) (*ParcelData, bool) {
 	for i := range *parcelData.Timeline {
 		p := &parcelData
 		t := *p.Timeline
-		t[historyLen-1-i].Index = strconv.Itoa(i)
+		t[historyLen-1-i].Index = int8(i)
 	}
 
 	return &parcelData, true
@@ -106,7 +105,7 @@ func getGCTimelineData(gcTimeline []gcTimelineEntry) *[]timelineEntry {
 
 		entry.Description = item.Description
 		//Add indices in reversed order
-		entry.Index = strconv.Itoa(timelineLen - 1 - i)
+		entry.Index = int8(timelineLen - 1 - i)
 		entry.Location = item.Location
 		entry.Status = item.Status
 
