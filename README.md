@@ -48,10 +48,11 @@ For more information about using Go on Heroku, see these Dev Center articles:
 
 ## Alternative Debug with VSCode and Delve
 
-1. Build  code with: go build -o $GOPATH/bin/devmarks -i
-2. In another terminal run: delve in headless mode dlv attach --headless --listen=:2345 --api-version=2 $(pgrep devmarks)
-3. Use configuration:
-    {
+1. Build code with: go build -o $GOPATH/bin/devmarks -i
+2. Run server with devmarks serve
+3. In another terminal run delve in headless mode: dlv attach --headless --listen=:2345 --api-version=2 $(pgrep devmarks)
+4. Use configuration:
+        {
             "name": "Connect to Delve",
             "type": "go",
             "request": "attach",
