@@ -5,12 +5,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "server",
+      "name": "Debug Server",
       "type": "go",
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceRoot}",
-      "trace": "verbose"
+      // "trace": "verbose",
     },
     {
       "name": "Connect to Delve",
@@ -22,7 +22,7 @@
       "host": "127.0.0.1",
       "apiVersion": 2,
       "showLog": true,
-      "trace": "verbose"
-    }
+      // "trace": "verbose",
+    },
   ]
 }
