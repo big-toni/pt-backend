@@ -74,12 +74,16 @@ func mapData(data []byte) (*ParcelData, bool) {
 	}
 	parcelData.To = &address{Country: result["destCountry"].(string)}
 	parcelData.LastUpdated = result["cachedTime"].(string)
-	parcelData.From = &address{Country: result["originCountry"].(string)}
-	parcelData.ShippingDaysCount = result["shippingTime"].(float64)
+	parcelData.From = &address{Country: result["originCountry"].(string)} 
 	parcelData.Status = result["status"].(string)
 	parcelData.StatusDescription = result["statusDesc"].(string)
 	mapstructure.Decode(result["section2"].(map[string]interface{})["detailList"], &timeline)
 	parcelData.TrackingNumber = result["mailNo"].(string)
+
+	sTime := result["shippingTime"]
+	if sTime != nil {
+		parcelData.ShippingDaysCount = sTime.(float64)
+	}
 
 	parcelData.Timeline = getGCTimelineData(timeline)
 
