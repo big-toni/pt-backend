@@ -2,6 +2,7 @@ package couriers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -23,11 +24,11 @@ type gcTimelineEntry struct {
 }
 
 // GetGlobalCanaioData func
-func GetGlobalCanaioData(trackingNumber string) (*ParcelData, bool) {
+func GetGlobalCanaioData(trackingNumber string) (*ParcelData, error) {
 	urlString := fmt.Sprintf("http://global.cainiao.com/detail.htm?mailNoList=%s", trackingNumber)
 	resp, err := http.Get(urlString)
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
@@ -49,55 +50,56 @@ func GetGlobalCanaioData(trackingNumber string) (*ParcelData, bool) {
 		errCode := data.(map[string]interface{})["errorCode"]
 		success := data.(map[string]interface{})["success"]
 		if errCode == "RESULT_EMPTY" || success == false {
-			return nil, false
+			return nil, errors.New("RESULT_EMPTY")
 		}
 
 		data2, _ := json.Marshal(data)
 
 		parcelDataPointer, _ := mapData(data2)
 
-		return parcelDataPointer, true
+		return parcelDataPointer, nil
 	}
 
-	return nil, false
+	return nil, errors.New("Error in GetGlobalCanaioData func")
 }
 
-func mapData(data []byte) (*ParcelData, bool) {
+func mapData(data []byte) (parcelData *ParcelData, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("Panic in global_canaio mapData %s", r)
+			parcelData = nil
+		}
+	}()
 
 	var result map[string]interface{}
 	json.Unmarshal(data, &result)
 
 	var timeline []gcTimelineEntry
 
-	parcelData := ParcelData{
+	pd := ParcelData{
 		Provider: "GlobalCanaio",
 	}
-	parcelData.To = &address{Country: result["destCountry"].(string)}
-	parcelData.LastUpdated = result["cachedTime"].(string)
-	parcelData.From = &address{Country: result["originCountry"].(string)} 
-	parcelData.Status = result["status"].(string)
-	parcelData.StatusDescription = result["statusDesc"].(string)
+	pd.To = &address{Country: result["destCountry"].(string)}
+	pd.LastUpdated = result["cachedTime"].(string)
+	pd.ShippingDaysCount = result["shippingTime"].(float64)
+	pd.From = &address{Country: result["originCountry"].(string)}
+	pd.Status = result["status"].(string)
+	pd.StatusDescription = result["statusDesc"].(string)
 	mapstructure.Decode(result["section2"].(map[string]interface{})["detailList"], &timeline)
-	parcelData.TrackingNumber = result["mailNo"].(string)
+	pd.TrackingNumber = result["mailNo"].(string)
 
-	sTime := result["shippingTime"]
-	if sTime != nil {
-		parcelData.ShippingDaysCount = sTime.(float64)
-	}
+	pd.Timeline = getGCTimelineData(timeline)
 
-	parcelData.Timeline = getGCTimelineData(timeline)
-
-	historyLen := len(*parcelData.Timeline)
+	historyLen := len(*pd.Timeline)
 
 	//Add indexes in reversed order
-	for i := range *parcelData.Timeline {
-		p := &parcelData
+	for i := range *pd.Timeline {
+		p := &pd
 		t := *p.Timeline
 		t[historyLen-1-i].Index = int8(i)
 	}
 
-	return &parcelData, true
-
+	return &pd, err
 }
 
 func getGCTimelineData(gcTimeline []gcTimelineEntry) *[]timelineEntry {
