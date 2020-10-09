@@ -11,6 +11,10 @@
       "mode": "debug",
       "program": "${workspaceRoot}",
       // "trace": "verbose",
+      // "env": {},
+      // "args": [],
+      // "logOutput": "debugger",
+      // "showLog": true,
     },
     {
       "name": "Connect to Delve",
