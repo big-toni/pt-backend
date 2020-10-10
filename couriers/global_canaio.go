@@ -23,8 +23,17 @@ type gcTimelineEntry struct {
 	Time        string   `json:"time"`
 }
 
-// GetGlobalCanaioData func
-func GetGlobalCanaioData(trackingNumber string) (*ParcelData, error) {
+// GlobalCanaioScraper struct
+type GlobalCanaioScraper struct {
+}
+
+// NewGlobalCanaioScraper creates a new GlobalCanaioScraper.
+func NewGlobalCanaioScraper() *GlobalCanaioScraper {
+	return &GlobalCanaioScraper{}
+}
+
+// GetData func
+func (s *GlobalCanaioScraper) GetData(trackingNumber string) (*ParcelData, error) {
 	urlString := fmt.Sprintf("http://global.cainiao.com/detail.htm?mailNoList=%s", trackingNumber)
 	resp, err := http.Get(urlString)
 	if err != nil {
@@ -55,7 +64,7 @@ func GetGlobalCanaioData(trackingNumber string) (*ParcelData, error) {
 
 		data2, _ := json.Marshal(data)
 
-		parcelDataPointer, _ := mapData(data2)
+		parcelDataPointer, _ := s.mapData(data2)
 
 		return parcelDataPointer, nil
 	}
@@ -63,7 +72,7 @@ func GetGlobalCanaioData(trackingNumber string) (*ParcelData, error) {
 	return nil, errors.New("Error in GetGlobalCanaioData func")
 }
 
-func mapData(data []byte) (parcelData *ParcelData, err error) {
+func (s *GlobalCanaioScraper) mapData(data []byte) (parcelData *ParcelData, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("Panic in global_canaio mapData %s", r)
@@ -88,7 +97,7 @@ func mapData(data []byte) (parcelData *ParcelData, err error) {
 	mapstructure.Decode(result["section2"].(map[string]interface{})["detailList"], &timeline)
 	pd.TrackingNumber = result["mailNo"].(string)
 
-	pd.Timeline = getGCTimelineData(timeline)
+	pd.Timeline = s.getTimelineData(timeline)
 
 	historyLen := len(*pd.Timeline)
 
@@ -102,7 +111,7 @@ func mapData(data []byte) (parcelData *ParcelData, err error) {
 	return &pd, err
 }
 
-func getGCTimelineData(gcTimeline []gcTimelineEntry) *[]timelineEntry {
+func (s *GlobalCanaioScraper) getTimelineData(gcTimeline []gcTimelineEntry) *[]timelineEntry {
 	var parsedTimeline []timelineEntry
 	timelineLen := len(gcTimeline)
 

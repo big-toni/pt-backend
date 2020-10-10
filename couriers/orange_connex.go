@@ -20,7 +20,16 @@ type orangeConnexTimelineEntry struct {
 	Time        string   `json:"time"`
 }
 
-func jsGetDetails() (js string) {
+// OrangeConnexScraper struct
+type OrangeConnexScraper struct {
+}
+
+// NewOrangeConnexScraper creates a new OrangeConnexScraper.
+func NewOrangeConnexScraper() *OrangeConnexScraper {
+	return &OrangeConnexScraper{}
+}
+
+func (s *OrangeConnexScraper) jsGetDetails() (js string) {
 	const funcJS = `function getDetails() {
 				var x = {};
 				var header = document.body.querySelector("div[class='el-collapse-item__header']");
@@ -52,15 +61,26 @@ func jsGetDetails() (js string) {
 	return strings.Join([]string{funcJS, invokeFuncJS}, " ")
 }
 
-func jsGetOrangeConnexTimeline(sel string) (js string) {
+func (s *OrangeConnexScraper) jsGetTimeline(sel string) (js string) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Panic in OrangeConnexScraper, jsGetTimeline %s", r)
+		}
+	}()
 	buf, _ := ioutil.ReadFile("helpers/orangeConnex.js")
 	funcJS := string(buf)
 	invokeFuncJS := `var a = getItems("` + sel + `"); a;`
 	return strings.Join([]string{funcJS, invokeFuncJS}, " ")
 }
 
-// GetOrangeConnexData func
-func GetOrangeConnexData(trackingNumber string) (*ParcelData, bool) {
+// GetData func
+func (s *OrangeConnexScraper) GetData(trackingNumber string) (*ParcelData, bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Panic in OrangeConnexScraper, GetData %s", r)
+		}
+	}()
+
 	// create chrome instance
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
@@ -74,9 +94,9 @@ func GetOrangeConnexData(trackingNumber string) (*ParcelData, bool) {
 
 	urlString := fmt.Sprintf(`https://www.orangeconnex.com/tracking?language=en&trackingnumber=%s`, trackingNumber)
 
-	timelineEvaluate := jsGetOrangeConnexTimeline("ul[class='timeline']")
+	timelineEvaluate := s.jsGetTimeline("ul[class='timeline']")
 
-	details := jsGetDetails()
+	details := s.jsGetDetails()
 
 	var timeline []orangeConnexTimelineEntry
 	parcelData := ParcelData{
@@ -91,7 +111,7 @@ func GetOrangeConnexData(trackingNumber string) (*ParcelData, bool) {
 		chromedp.Evaluate(details, &parcelData),
 	)
 
-	parcelData.Timeline = getOCTimelineData(timeline)
+	parcelData.Timeline = s.getTimelineData(timeline)
 
 	if err != nil {
 		log.Fatal(err)
@@ -106,7 +126,12 @@ func GetOrangeConnexData(trackingNumber string) (*ParcelData, bool) {
 	return &parcelData, true
 }
 
-func getOCTimelineData(ocTimeline []orangeConnexTimelineEntry) *[]timelineEntry {
+func (s *OrangeConnexScraper) getTimelineData(ocTimeline []orangeConnexTimelineEntry) *[]timelineEntry {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Panic in OrangeConnexScraper, getTimelineData %s", r)
+		}
+	}()
 	var parsedTimeline []timelineEntry
 	timelineLen := len(ocTimeline)
 
