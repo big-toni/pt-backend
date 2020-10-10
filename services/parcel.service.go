@@ -41,7 +41,7 @@ func (s *ParcelService) GetParcelData(trackingNumber string) ([]byte, bool) {
 
 	ch := make(chan *couriers.ParcelData)
 	wg := &sync.WaitGroup{}
-	wg.Add(4)
+	wg.Add(3)
 
 	var result []byte
 
@@ -71,13 +71,13 @@ func (s *ParcelService) GetParcelData(trackingNumber string) ([]byte, bool) {
 		ch <- phParcelData
 	}(ch, wg)
 
-	go func(ch chan<- *couriers.ParcelData, wg *sync.WaitGroup) {
-		defer timeTrack(time.Now(), "DhlHr data scraper")
-		log.Println("DhlHr data scraper started")
-		dhlHrScraper := couriers.NewDhlHrScraper()
-		dhlParcelData, _ := dhlHrScraper.GetData(trackingNumber)
-		ch <- dhlParcelData
-	}(ch, wg)
+	// go func(ch chan<- *couriers.ParcelData, wg *sync.WaitGroup) {
+	// 	defer timeTrack(time.Now(), "DhlHr data scraper")
+	// 	log.Println("DhlHr data scraper started")
+	// 	dhlHrScraper := couriers.NewDhlHrScraper()
+	// 	dhlParcelData, _ := dhlHrScraper.GetData(trackingNumber)
+	// 	ch <- dhlParcelData
+	// }(ch, wg)
 
 	go func(ch <-chan *couriers.ParcelData, wg *sync.WaitGroup) {
 		for msg := range ch {
