@@ -26,13 +26,16 @@ const getItems = (sel) => {
           .textContent
           .trim();
 
-        const timeRE = /[0-9]+\:[0-9]*\:[0-9]*\s[A-Z]+/g;
+        const timeRE = /[0-9]+\:[0-9]+\:[0-9]+/;
         const timeMatch = dateElement.match(timeRE);
-        item.time = timeMatch && timeMatch[0];
+        const time = timeMatch && timeMatch[0];
 
-        const dateRE = /[0-9]+\/[0-9]+\/[0-9]+/g;
+        const dateRE = /[0-9]+\.[0-9]+\.[0-9]+/;
         const dateMatch = dateElement.match(dateRE);
-        item.date = dateMatch && dateMatch[0];
+        const date = dateMatch && dateMatch[0];
+        const dateArry = date.split('.')
+
+        item.time = new Date(`${dateArry[2]}-${dateArry[1]}-${dateArry[0]}T${time}`).toISOString()
 
         const infoElement = x.querySelector("div[class='styles__status___3MLpj']")
         const infoStr = infoElement && infoElement.textContent.trim()
