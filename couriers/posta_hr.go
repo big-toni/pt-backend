@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"pt-server/parcels"
 	"strings"
 	"time"
 
@@ -33,7 +34,7 @@ func (s *PostaHrScraper) jsGetTimeline(sel string) (js string) {
 }
 
 // GetData func
-func (s *PostaHrScraper) GetData(trackingNumber string) (*ParcelData, bool) {
+func (s *PostaHrScraper) GetData(trackingNumber string) (*parcels.ParcelData, bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Panic in PostaHrScraper, GetData %s", r)
@@ -59,7 +60,7 @@ func (s *PostaHrScraper) GetData(trackingNumber string) (*ParcelData, bool) {
 
 	urlString := fmt.Sprintf(`https://posiljka.posta.hr/Tracking/Info`)
 
-	parcelData := ParcelData{
+	parcelData := parcels.ParcelData{
 		Provider: "PostaHr",
 	}
 	jsTimeline := s.jsGetTimeline("div[class='styles__table___5Ule6']")
@@ -85,10 +86,6 @@ func (s *PostaHrScraper) GetData(trackingNumber string) (*ParcelData, bool) {
 		chromedp.Text("div[class='__c-heading __c-heading--h4 __c-heading--bold __u-mb--none']", &parcelData.TrackingNumber),
 		chromedp.Evaluate(jsTimeline, &parcelData.Timeline),
 	)
-
-	for i := range *parcelData.Timeline {
-		(*parcelData.Timeline)[i].Index = int8(i)
-	}
 
 	if foundData == "" {
 		chromedp.Stop()
