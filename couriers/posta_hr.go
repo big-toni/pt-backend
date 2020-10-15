@@ -11,15 +11,6 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-type postaHrTimelineEntry struct {
-	Date        string   `json:"date"`
-	Description string   `json:"description"`
-	Index       int8     `json:"index"`
-	Location    *address `json:"location"`
-	Status      string   `json:"status"`
-	Time        string   `json:"time"`
-}
-
 // PostaHrScraper struct
 type PostaHrScraper struct {
 }
@@ -68,7 +59,6 @@ func (s *PostaHrScraper) GetData(trackingNumber string) (*ParcelData, bool) {
 
 	urlString := fmt.Sprintf(`https://posiljka.posta.hr/Tracking/Info`)
 
-	var timeline []postaHrTimelineEntry
 	parcelData := ParcelData{
 		Provider: "PostaHr",
 	}
@@ -93,10 +83,12 @@ func (s *PostaHrScraper) GetData(trackingNumber string) (*ParcelData, bool) {
 
 		chromedp.Text("sham-shipment-origin-date", &parcelData.StatusDescription),
 		chromedp.Text("div[class='__c-heading __c-heading--h4 __c-heading--bold __u-mb--none']", &parcelData.TrackingNumber),
-		chromedp.Evaluate(jsTimeline, &timeline),
+		chromedp.Evaluate(jsTimeline, &parcelData.Timeline),
 	)
 
-	parcelData.Timeline = s.getTimelineData(timeline)
+	for i := range *parcelData.Timeline {
+		(*parcelData.Timeline)[i].Index = int8(i)
+	}
 
 	if foundData == "" {
 		chromedp.Stop()
@@ -109,34 +101,4 @@ func (s *PostaHrScraper) GetData(trackingNumber string) (*ParcelData, bool) {
 	}
 
 	return &parcelData, true
-}
-
-func (s *PostaHrScraper) getTimelineData(phrTimeline []postaHrTimelineEntry) *[]timelineEntry {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Panic in PostaHrScraper, getTimelineData %s", r)
-		}
-	}()
-	var parsedTimeline []timelineEntry
-
-	for i, item := range phrTimeline {
-		entry := timelineEntry{}
-
-		entry.Description = item.Description
-		//Add indices in reversed order
-		entry.Index = int8(i)
-		entry.Location = item.Location
-		entry.Status = item.Status
-
-		layout := "1/2/2006T15:04:05 PM"
-		t, err := time.Parse(layout, item.Date+"T"+item.Time)
-		entry.Time = t
-		if err != nil {
-			log.Println(err)
-		}
-		// parsedTimeline = append(parsedTimeline, entry)
-		parsedTimeline = append([]timelineEntry{entry}, parsedTimeline...)
-	}
-
-	return &parsedTimeline
 }
