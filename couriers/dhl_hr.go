@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"pt-server/parcels"
 	"strings"
 	"time"
 
@@ -12,12 +13,12 @@ import (
 )
 
 type dhlHrTimelineEntry struct {
-	Date        string   `json:"date"`
-	Description string   `json:"description"`
-	Index       int8     `json:"index"`
-	Location    *address `json:"location"`
-	Status      string   `json:"status"`
-	Time        string   `json:"time"`
+	Date        string           `json:"date"`
+	Description string           `json:"description"`
+	Index       int8             `json:"index"`
+	Location    *parcels.Address `json:"location"`
+	Status      string           `json:"status"`
+	Time        string           `json:"time"`
 }
 
 // DhlHrScraper struct
@@ -42,7 +43,7 @@ func (s *DhlHrScraper) jsGetTimeline(sel string) (js string) {
 }
 
 // GetData func
-func (s *DhlHrScraper) GetData(trackingNumber string) (*ParcelData, bool) {
+func (s *DhlHrScraper) GetData(trackingNumber string) (*parcels.ParcelData, bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Panic in DhlHrScraper GetData %s", r)
@@ -69,7 +70,7 @@ func (s *DhlHrScraper) GetData(trackingNumber string) (*ParcelData, bool) {
 	urlString := fmt.Sprintf(`https://www.dhl.com/hr-en/home/tracking/tracking-parcel.html?submit=1&tracking-id=%s`, trackingNumber)
 
 	var timeline []dhlHrTimelineEntry
-	parcelData := ParcelData{
+	parcelData := parcels.ParcelData{
 		Provider: "DHL_hr",
 	}
 	jsTimeline := s.jsGetTimeline("div[class='l-grid l-grid--w-100pc-s l-grid--w-auto-m']")
@@ -91,16 +92,16 @@ func (s *DhlHrScraper) GetData(trackingNumber string) (*ParcelData, bool) {
 	return &parcelData, true
 }
 
-func (s *DhlHrScraper) getTimelineData(dhrTimeline []dhlHrTimelineEntry) *[]timelineEntry {
+func (s *DhlHrScraper) getTimelineData(dhrTimeline []dhlHrTimelineEntry) *parcels.Timeline {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Panic in DhlHrScraper getTimelineData %s", r)
 		}
 	}()
-	var parsedTimeline []timelineEntry
+	var parsedTimeline parcels.Timeline
 
 	for i, item := range dhrTimeline {
-		entry := timelineEntry{}
+		entry := parcels.TimelineEntry{}
 
 		entry.Description = item.Description
 		//Add indices in reversed order
@@ -115,7 +116,7 @@ func (s *DhlHrScraper) getTimelineData(dhrTimeline []dhlHrTimelineEntry) *[]time
 			log.Println(err)
 		}
 		// parsedTimeline = append(parsedTimeline, entry)
-		parsedTimeline = append([]timelineEntry{entry}, parsedTimeline...)
+		parsedTimeline = append([]parcels.TimelineEntry{entry}, parsedTimeline...)
 	}
 
 	return &parsedTimeline

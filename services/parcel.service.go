@@ -5,6 +5,7 @@ import (
 	"log"
 	"pt-server/couriers"
 	"pt-server/database/models"
+	"pt-server/parcels"
 	"sync"
 	"time"
 
@@ -39,15 +40,16 @@ func NewParcelService(dao ParcelDAO) *ParcelService {
 // GetParcelData func
 func (s *ParcelService) GetParcelData(trackingNumber string) ([]byte, bool) {
 
-	ch := make(chan *couriers.ParcelData)
+	ch := make(chan *parcels.ParcelData)
 	wg := &sync.WaitGroup{}
 	wg.Add(3)
 
 	var result []byte
+	dataMerger := parcels.NewMerger()
 
 	log.Println("Searching data for trackingNumber:", trackingNumber)
 
-	go func(ch chan<- *couriers.ParcelData, wg *sync.WaitGroup) {
+	go func(ch chan<- *parcels.ParcelData, wg *sync.WaitGroup) {
 		defer timeTrack(time.Now(), "GlobalCanaio data scraper")
 		log.Println("GlobalCanaio data scraper started")
 		globalCanaioScraper := couriers.NewGlobalCanaioScraper()
@@ -55,7 +57,7 @@ func (s *ParcelService) GetParcelData(trackingNumber string) ([]byte, bool) {
 		ch <- gcParcelData
 	}(ch, wg)
 
-	go func(ch chan<- *couriers.ParcelData, wg *sync.WaitGroup) {
+	go func(ch chan<- *parcels.ParcelData, wg *sync.WaitGroup) {
 		defer timeTrack(time.Now(), "OrangeConnex data scraper")
 		log.Println("OrangeConnex data scraper started")
 		orangeConnexScraper := couriers.NewOrangeConnexScraper()
@@ -63,7 +65,7 @@ func (s *ParcelService) GetParcelData(trackingNumber string) ([]byte, bool) {
 		ch <- ocParcelData
 	}(ch, wg)
 
-	go func(ch chan<- *couriers.ParcelData, wg *sync.WaitGroup) {
+	go func(ch chan<- *parcels.ParcelData, wg *sync.WaitGroup) {
 		defer timeTrack(time.Now(), "PostaHr data scraper")
 		log.Println("PostaHr data scraper started")
 		postaHrScraper := couriers.NewPostaHrScraper()
@@ -79,10 +81,10 @@ func (s *ParcelService) GetParcelData(trackingNumber string) ([]byte, bool) {
 	// 	ch <- dhlParcelData
 	// }(ch, wg)
 
-	go func(ch <-chan *couriers.ParcelData, wg *sync.WaitGroup) {
+	go func(ch <-chan *parcels.ParcelData, wg *sync.WaitGroup) {
 		for msg := range ch {
 			if msg != nil {
-				result, _ = json.Marshal(msg)
+				dataMerger.AddData(msg)
 			}
 			wg.Done()
 		}
@@ -91,6 +93,11 @@ func (s *ParcelService) GetParcelData(trackingNumber string) ([]byte, bool) {
 
 	wg.Wait()
 	// close(ch)
+
+	final, _ := dataMerger.GetFinalData()
+
+	result, _ = json.Marshal(final)
+
 	return result, true
 
 }

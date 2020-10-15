@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"pt-server/parcels"
 	"regexp"
 	"time"
 
@@ -15,12 +16,12 @@ import (
 )
 
 type gcTimelineEntry struct {
-	Date        string   `json:"date"`
-	Description string   `json:"description" mapstructure:"desc"`
-	Index       int8     `json:"index"`
-	Location    *address `json:"location"`
-	Status      string   `json:"status"`
-	Time        string   `json:"time"`
+	Date        string           `json:"date"`
+	Description string           `json:"description" mapstructure:"desc"`
+	Index       int8             `json:"index"`
+	Location    *parcels.Address `json:"location"`
+	Status      string           `json:"status"`
+	Time        string           `json:"time"`
 }
 
 // GlobalCanaioScraper struct
@@ -33,7 +34,7 @@ func NewGlobalCanaioScraper() *GlobalCanaioScraper {
 }
 
 // GetData func
-func (s *GlobalCanaioScraper) GetData(trackingNumber string) (*ParcelData, error) {
+func (s *GlobalCanaioScraper) GetData(trackingNumber string) (*parcels.ParcelData, error) {
 	urlString := fmt.Sprintf("http://global.cainiao.com/detail.htm?mailNoList=%s", trackingNumber)
 	resp, err := http.Get(urlString)
 	if err != nil {
@@ -72,7 +73,7 @@ func (s *GlobalCanaioScraper) GetData(trackingNumber string) (*ParcelData, error
 	return nil, errors.New("Error in GetGlobalCanaioData func")
 }
 
-func (s *GlobalCanaioScraper) mapData(data []byte) (parcelData *ParcelData, err error) {
+func (s *GlobalCanaioScraper) mapData(data []byte) (parcelData *parcels.ParcelData, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("Panic in global_canaio mapData %s", r)
@@ -85,13 +86,13 @@ func (s *GlobalCanaioScraper) mapData(data []byte) (parcelData *ParcelData, err 
 
 	var timeline []gcTimelineEntry
 
-	pd := ParcelData{
+	pd := parcels.ParcelData{
 		Provider: "GlobalCanaio",
 	}
-	pd.To = &address{Country: result["destCountry"].(string)}
+	pd.To = &parcels.Address{Country: result["destCountry"].(string)}
 	pd.LastUpdated = result["cachedTime"].(string)
 	pd.ShippingDaysCount = result["shippingTime"].(float64)
-	pd.From = &address{Country: result["originCountry"].(string)}
+	pd.From = &parcels.Address{Country: result["originCountry"].(string)}
 	pd.Status = result["status"].(string)
 	pd.StatusDescription = result["statusDesc"].(string)
 	mapstructure.Decode(result["section2"].(map[string]interface{})["detailList"], &timeline)
@@ -111,12 +112,12 @@ func (s *GlobalCanaioScraper) mapData(data []byte) (parcelData *ParcelData, err 
 	return &pd, err
 }
 
-func (s *GlobalCanaioScraper) getTimelineData(gcTimeline []gcTimelineEntry) *[]timelineEntry {
-	var parsedTimeline []timelineEntry
+func (s *GlobalCanaioScraper) getTimelineData(gcTimeline []gcTimelineEntry) *parcels.Timeline {
+	var parsedTimeline parcels.Timeline
 	timelineLen := len(gcTimeline)
 
 	for i, item := range gcTimeline {
-		entry := timelineEntry{}
+		entry := parcels.TimelineEntry{}
 
 		entry.Description = item.Description
 		//Add indices in reversed order

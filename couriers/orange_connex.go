@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"pt-server/parcels"
 	"strings"
 	"time"
 
@@ -12,12 +13,12 @@ import (
 )
 
 type orangeConnexTimelineEntry struct {
-	Date        string   `json:"date"`
-	Description string   `json:"description"`
-	Index       int8     `json:"index"`
-	Location    *address `json:"location"`
-	Status      string   `json:"status"`
-	Time        string   `json:"time"`
+	Date        string           `json:"date"`
+	Description string           `json:"description"`
+	Index       int8             `json:"index"`
+	Location    *parcels.Address `json:"location"`
+	Status      string           `json:"status"`
+	Time        string           `json:"time"`
 }
 
 // OrangeConnexScraper struct
@@ -74,7 +75,7 @@ func (s *OrangeConnexScraper) jsGetTimeline(sel string) (js string) {
 }
 
 // GetData func
-func (s *OrangeConnexScraper) GetData(trackingNumber string) (*ParcelData, bool) {
+func (s *OrangeConnexScraper) GetData(trackingNumber string) (*parcels.ParcelData, bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Panic in OrangeConnexScraper, GetData %s", r)
@@ -99,7 +100,7 @@ func (s *OrangeConnexScraper) GetData(trackingNumber string) (*ParcelData, bool)
 	details := s.jsGetDetails()
 
 	var timeline []orangeConnexTimelineEntry
-	parcelData := ParcelData{
+	parcelData := parcels.ParcelData{
 		Provider: "OrangeConnex",
 	}
 
@@ -126,17 +127,17 @@ func (s *OrangeConnexScraper) GetData(trackingNumber string) (*ParcelData, bool)
 	return &parcelData, true
 }
 
-func (s *OrangeConnexScraper) getTimelineData(ocTimeline []orangeConnexTimelineEntry) *[]timelineEntry {
+func (s *OrangeConnexScraper) getTimelineData(ocTimeline []orangeConnexTimelineEntry) *parcels.Timeline {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Panic in OrangeConnexScraper, getTimelineData %s", r)
 		}
 	}()
-	var parsedTimeline []timelineEntry
+	var parsedTimeline parcels.Timeline
 	timelineLen := len(ocTimeline)
 
 	for i, item := range ocTimeline {
-		entry := timelineEntry{}
+		entry := parcels.TimelineEntry{}
 
 		entry.Description = item.Description
 		//Add indices in reversed order
