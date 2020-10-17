@@ -94,7 +94,7 @@ func (s *ParcelService) GetParcelData(trackingNumber string) ([]byte, bool) {
 	wg.Wait()
 	// close(ch)
 
-	final, _ := dataMerger.GetFinalData()
+	final, _ := dataMerger.GetMergedData()
 
 	result, _ = json.Marshal(final)
 

@@ -24,26 +24,27 @@ func (m *Merger) AddData(data *ParcelData) (bool, error) {
 	return true, nil
 }
 
-// GetFinalData func
-func (m *Merger) GetFinalData() (*ParcelData, error) {
-	var parsedTimeline Timeline
+// GetMergedData func
+func (m *Merger) GetMergedData() (*ParcelData, error) {
+	var mergedTimeline Timeline
 
 	for _, x := range m.dataPool {
 		m.addInfo(x)
 
 		for _, y := range *x.Timeline {
-			parsedTimeline = append(parsedTimeline, y)
+			mergedTimeline = append(mergedTimeline, y)
 		}
 	}
 
-	sort.Sort(sort.Reverse(parsedTimeline))
-	m.mergedData.Timeline = &parsedTimeline
+	sort.Sort(sort.Reverse(mergedTimeline))
 
 	// add indices to timeline
-	length := m.mergedData.Timeline.Len()
-	for i := range *m.mergedData.Timeline {
-		(*m.mergedData.Timeline)[i].Index = int8(length - i - 1)
+	length := mergedTimeline.Len()
+	for i := range mergedTimeline {
+		mergedTimeline[i].Index = int8(length - i - 1)
 	}
+
+	m.mergedData.Timeline = &mergedTimeline
 
 	return &m.mergedData, nil
 }
