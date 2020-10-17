@@ -1,7 +1,6 @@
 package parcels
 
 import (
-	"fmt"
 	"sort"
 )
 
@@ -52,38 +51,62 @@ func (m *Merger) GetMergedData() (*ParcelData, error) {
 func (m *Merger) addInfo(x *ParcelData) {
 	// TODO: refactor when go introduces generics in 1.17 version
 	if x.Courier != "" {
-		m.mergedData.Courier = m.mergedData.Courier + ", " + x.Courier
+		if m.mergedData.Courier != "" {
+			m.mergedData.Courier = m.mergedData.Courier + ", " + x.Courier
+		} else {
+			m.mergedData.Courier = x.Courier
+		}
 	}
-	if x.From != nil {
+
+	if x.From != nil && m.mergedData.From == nil {
 		m.mergedData.From = x.From
 	}
 
 	if x.LastUpdated != "" {
-		m.mergedData.LastUpdated = m.mergedData.LastUpdated + ", " + x.LastUpdated
+		if m.mergedData.LastUpdated != "" {
+			m.mergedData.LastUpdated = m.mergedData.LastUpdated + ", " + x.LastUpdated
+		} else {
+			m.mergedData.LastUpdated = x.LastUpdated
+		}
 	}
 
 	if x.Provider != "" {
-		m.mergedData.Provider = fmt.Sprintf("%v, %v", m.mergedData.Provider, x.Provider)
-		// m.mergedData.Provider = m.mergedData.Provider + ", " + x.Provider
+		if m.mergedData.Provider != "" {
+			m.mergedData.Provider = m.mergedData.Provider + ", " + x.Provider
+		} else {
+			m.mergedData.Provider = x.Provider
+		}
 	}
 
-	if x.ShippingDaysCount != 0 {
+	if x.ShippingDaysCount != 0 && m.mergedData.ShippingDaysCount == 0 {
 		m.mergedData.ShippingDaysCount = x.ShippingDaysCount
 	}
 
 	if x.Status != "" {
-		m.mergedData.Status = m.mergedData.Status + ", " + x.Status
+		if m.mergedData.Status != "" {
+			m.mergedData.Status = m.mergedData.Status + ", " + x.Status
+		} else {
+			m.mergedData.Status = x.Status
+		}
 	}
 
 	if x.StatusDescription != "" {
-		m.mergedData.StatusDescription = m.mergedData.StatusDescription + ", " + x.StatusDescription
+		if m.mergedData.StatusDescription != "" {
+			m.mergedData.StatusDescription = m.mergedData.StatusDescription + ", " + x.StatusDescription
+		} else {
+			m.mergedData.StatusDescription = x.StatusDescription
+		}
 	}
 
-	if x.To != nil {
+	if x.To != nil && m.mergedData.To == nil {
 		m.mergedData.To = x.To
 	}
 
 	if x.TrackingNumber != "" {
-		m.mergedData.TrackingNumber = x.TrackingNumber
+		if m.mergedData.TrackingNumber != "" {
+			m.mergedData.TrackingNumber = m.mergedData.TrackingNumber + ", " + x.TrackingNumber
+		} else {
+			m.mergedData.TrackingNumber = x.TrackingNumber
+		}
 	}
 }
