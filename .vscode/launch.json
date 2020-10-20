@@ -28,5 +28,12 @@
       "showLog": true,
       // "trace": "verbose",
     },
+    {
+      "name": "Debug Test",
+      "type": "go",
+      "request": "launch",
+      "mode": "test",
+      "program": "${workspaceRoot}/parcels",
+    }
   ]
 }
