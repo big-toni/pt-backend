@@ -65,7 +65,7 @@ func (s *OrangeConnexScraper) jsGetDetails() (js string) {
 func (s *OrangeConnexScraper) jsGetTimeline(sel string) (js string) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Panic in OrangeConnexScraper, jsGetTimeline %s", r)
+			fmt.Printf("Panic in OrangeConnexScraper, jsGetTimeline %s", r)
 		}
 	}()
 	buf, _ := ioutil.ReadFile("helpers/orangeConnex.js")
@@ -78,7 +78,7 @@ func (s *OrangeConnexScraper) jsGetTimeline(sel string) (js string) {
 func (s *OrangeConnexScraper) GetData(trackingNumber string) (*parcels.ParcelData, bool) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Panic in OrangeConnexScraper, GetData %s", r)
+			fmt.Printf("Panic in OrangeConnexScraper, GetData %s", r)
 		}
 	}()
 
@@ -130,7 +130,7 @@ func (s *OrangeConnexScraper) GetData(trackingNumber string) (*parcels.ParcelDat
 func (s *OrangeConnexScraper) getTimelineData(ocTimeline []orangeConnexTimelineEntry) *parcels.Timeline {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Panic in OrangeConnexScraper, getTimelineData %s", r)
+			fmt.Printf("Panic in OrangeConnexScraper, getTimelineData %s", r)
 		}
 	}()
 	var parsedTimeline parcels.Timeline

@@ -33,7 +33,7 @@ func NewDhlHrScraper() *DhlHrScraper {
 func (s *DhlHrScraper) jsGetTimeline(sel string) (js string) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Panic in DhlHrScraper jsGetTimeline %s", r)
+			fmt.Printf("Panic in DhlHrScraper jsGetTimeline %v", r)
 		}
 	}()
 	buf, _ := ioutil.ReadFile("helpers/dhlHr.js")
@@ -46,7 +46,7 @@ func (s *DhlHrScraper) jsGetTimeline(sel string) (js string) {
 func (s *DhlHrScraper) GetData(trackingNumber string) (*parcels.ParcelData, bool) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Panic in DhlHrScraper GetData %s", r)
+			fmt.Printf("Panic in DhlHrScraper GetData %s", r)
 		}
 	}()
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
@@ -95,7 +95,7 @@ func (s *DhlHrScraper) GetData(trackingNumber string) (*parcels.ParcelData, bool
 func (s *DhlHrScraper) getTimelineData(dhrTimeline []dhlHrTimelineEntry) *parcels.Timeline {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Panic in DhlHrScraper getTimelineData %s", r)
+			fmt.Printf("Panic in DhlHrScraper getTimelineData %s", r)
 		}
 	}()
 	var parsedTimeline parcels.Timeline

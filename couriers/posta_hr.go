@@ -24,7 +24,7 @@ func NewPostaHrScraper() *PostaHrScraper {
 func (s *PostaHrScraper) jsGetTimeline(sel string) (js string) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Panic in PostaHrScraper, jsGetTimeline %s", r)
+			fmt.Printf("Panic in PostaHrScraper, jsGetTimeline %s", r)
 		}
 	}()
 	buf, _ := ioutil.ReadFile("helpers/postaHr.js")
@@ -37,7 +37,7 @@ func (s *PostaHrScraper) jsGetTimeline(sel string) (js string) {
 func (s *PostaHrScraper) GetData(trackingNumber string) (*parcels.ParcelData, bool) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Panic in PostaHrScraper, GetData %s", r)
+			fmt.Printf("Panic in PostaHrScraper, GetData %s", r)
 		}
 	}()
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
