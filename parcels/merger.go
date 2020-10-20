@@ -25,6 +25,10 @@ func (m *Merger) AddData(data *ParcelData) (bool, error) {
 
 // GetMergedData func
 func (m *Merger) GetMergedData() (*ParcelData, error) {
+	if len(m.dataPool) <= 0 {
+		return nil, nil
+	}
+	
 	var mergedTimeline Timeline
 
 	for _, x := range m.dataPool {
