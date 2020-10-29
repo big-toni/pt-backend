@@ -1,4 +1,4 @@
-package couriers
+package providers
 
 import (
 	"encoding/json"

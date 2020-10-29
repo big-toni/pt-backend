@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 	"log"
-	"pt-server/couriers"
 	"pt-server/database/models"
 	"pt-server/parcels"
+	"pt-server/providers"
 	"sync"
 	"time"
 
@@ -52,7 +52,7 @@ func (s *ParcelService) GetParcelData(trackingNumber string) ([]byte, bool) {
 	go func(ch chan<- *parcels.ParcelData, wg *sync.WaitGroup) {
 		defer timeTrack(time.Now(), "GlobalCanaio data scraper")
 		log.Println("GlobalCanaio data scraper started")
-		globalCanaioScraper := couriers.NewGlobalCanaioScraper()
+		globalCanaioScraper := providers.NewGlobalCanaioScraper()
 		gcParcelData, _ := globalCanaioScraper.GetData(trackingNumber)
 		ch <- gcParcelData
 	}(ch, wg)
@@ -60,7 +60,7 @@ func (s *ParcelService) GetParcelData(trackingNumber string) ([]byte, bool) {
 	go func(ch chan<- *parcels.ParcelData, wg *sync.WaitGroup) {
 		defer timeTrack(time.Now(), "OrangeConnex data scraper")
 		log.Println("OrangeConnex data scraper started")
-		orangeConnexScraper := couriers.NewOrangeConnexScraper()
+		orangeConnexScraper := providers.NewOrangeConnexScraper()
 		ocParcelData, _ := orangeConnexScraper.GetData(trackingNumber)
 		ch <- ocParcelData
 	}(ch, wg)
@@ -68,15 +68,15 @@ func (s *ParcelService) GetParcelData(trackingNumber string) ([]byte, bool) {
 	go func(ch chan<- *parcels.ParcelData, wg *sync.WaitGroup) {
 		defer timeTrack(time.Now(), "PostaHr data scraper")
 		log.Println("PostaHr data scraper started")
-		postaHrScraper := couriers.NewPostaHrScraper()
+		postaHrScraper := providers.NewPostaHrScraper()
 		phParcelData, _ := postaHrScraper.GetData(trackingNumber)
 		ch <- phParcelData
 	}(ch, wg)
 
-	// go func(ch chan<- *couriers.ParcelData, wg *sync.WaitGroup) {
+	// go func(ch chan<- *providers.ParcelData, wg *sync.WaitGroup) {
 	// 	defer timeTrack(time.Now(), "DhlHr data scraper")
 	// 	log.Println("DhlHr data scraper started")
-	// 	dhlHrScraper := couriers.NewDhlHrScraper()
+	// 	dhlHrScraper := providers.NewDhlHrScraper()
 	// 	dhlParcelData, _ := dhlHrScraper.GetData(trackingNumber)
 	// 	ch <- dhlParcelData
 	// }(ch, wg)
@@ -104,7 +104,7 @@ func (s *ParcelService) GetParcelData(trackingNumber string) ([]byte, bool) {
 
 // ResolveCourier func
 func (s *ParcelService) ResolveCourier(trackingNumber string) ([]string, bool) {
-	return couriers.ResolveCourier(trackingNumber)
+	return providers.ResolveCourier(trackingNumber)
 }
 
 func timeTrack(start time.Time, name string) {
