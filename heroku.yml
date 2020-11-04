@@ -1,6 +1,0 @@
-build:
-  languages:
-    - go
-
-run:
-  web: pmgo start ./ pt-server
