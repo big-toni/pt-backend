@@ -36,8 +36,7 @@ func Courier(w http.ResponseWriter, r *http.Request) {
 
 // AddParcels func
 func AddParcels(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	userID := vars["userId"]
+	userID := r.Context().Value("userID").(string)
 
 	var pInfos []services.ParcelInfo
 	err := json.NewDecoder(r.Body).Decode(&pInfos)
@@ -56,8 +55,7 @@ func AddParcels(w http.ResponseWriter, r *http.Request) {
 
 // GetParcels func
 func GetParcels(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	userID := vars["userId"]
+	userID := r.Context().Value("userID").(string)
 
 	dbUserID, _ := primitive.ObjectIDFromHex(userID)
 	parcels := parcelService.GetParcels(dbUserID)

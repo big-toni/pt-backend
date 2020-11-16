@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -53,8 +54,8 @@ func main() {
 	parcels.HandleFunc("/data/{trackingNumber:[a-zA-Z0-9]+}/", routes.Parcel).Methods("GET")
 	parcels.HandleFunc("/courier/{trackingNumber:[a-zA-Z0-9]+}/", routes.Courier).Methods("GET")
 
-	parcels.HandleFunc("/{userId:[a-zA-Z0-9]+}/", routes.AddParcels).Methods("POST")
-	parcels.HandleFunc("/{userId:[a-zA-Z0-9]+}/", routes.GetParcels).Methods("GET")
+	parcels.HandleFunc("/", routes.AddParcels).Methods("POST")
+	parcels.HandleFunc("/", routes.GetParcels).Methods("GET")
 	parcels.HandleFunc("/", routes.DeleteParcels).Methods("DELETE")
 	parcels.HandleFunc("/", routes.EditParcel).Methods("PATCH")
 
@@ -90,12 +91,14 @@ func authMiddleware(next http.Handler) http.Handler {
 
 		jwtToken := authArr[1]
 		s := services.NewUserService(database.NewUserDAO())
-		authorised := s.AuthenticateUser(jwtToken)
+		user, err := s.AuthenticateUser(jwtToken)
 
-		if !authorised {
+		userID := user.ID
+		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 		} else {
-			next.ServeHTTP(w, r)
+			ctx := context.WithValue(r.Context(), "userID", userID.Hex()) // nolint
+			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 	})
 }

@@ -2,6 +2,7 @@ package services
 
 import (
 	"crypto/sha256"
+	"errors"
 	"log"
 	"time"
 
@@ -36,12 +37,12 @@ func NewUserService(dao UserDAO) *UserService {
 }
 
 // AuthenticateUser func
-func (s *UserService) AuthenticateUser(tknStr string) bool {
+func (s *UserService) AuthenticateUser(tknStr string) (*models.User, error) {
 	ts := NewTokenService(database.NewTokenDAO())
 	valid, _ := ts.ValidateToken(tknStr)
 
 	if !valid {
-		return false
+		return nil, errors.New("Invalid signing algorithm")
 	}
 
 	// TODO: find better way
@@ -50,17 +51,17 @@ func (s *UserService) AuthenticateUser(tknStr string) bool {
 
 	if userID == nil {
 		log.Println("No token in database: ", tknStr)
-		return false
+		return nil, errors.New("No token in database")
 	}
 
 	user := s.dao.GetUserByID(*userID)
 
 	if &user == nil {
 		log.Println("No user with token: ", tknStr)
-		return false
+		return nil, errors.New("No user with token")
 	}
 
-	return true
+	return user, nil
 }
 
 // CreateUser func
