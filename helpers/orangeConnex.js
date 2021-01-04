@@ -1,36 +1,30 @@
 const getItems = (sel) => {
   var items = [];
-  var elements = document.body.querySelectorAll(sel);
+  var entries = document.body.querySelectorAll("div[class=el-collapse-item__content] > div > div[data-v-41aef011][class='detail-list col-md-12']");
 
-  for (var i = 0; i < elements.length; i++) {
-    var current = elements[i];
-    var commonDate = current.querySelector("h3").textContent.trim()
+  entries && [...entries].map(x => {
+    var item = {};
 
-    var entries = current.querySelectorAll("ul > div");
+    var infos = x.querySelectorAll("p[data-v-41aef011]")
 
-    entries && [...entries].map(x => {
-      var item = {};
-      item.date = commonDate;
-
-      item.time = x.querySelector("span")
-        .textContent
-        .trim();
-
-      item.description = x.querySelector("div[class='timeline-description']")
-        .textContent
-        .trim();
-
-      let location = {}
-
-      location.country = x.querySelector("div[class='timeline-location fl']")
+    item.time = infos[0]
       .textContent
-      .replace(/\s*\n+\s*/g,'')
       .trim();
 
-      item.location = location
+    item.description = infos[1]
+      .textContent
+      .trim();
 
-      items.push(item)
-    })
-  }
+    let location = {}
+
+    location.country = infos[2]
+    .textContent
+    .replace(/\s*\n+\s*/g,'')
+    .trim();
+
+    item.location = location
+
+    items.push(item)
+  })
   return items
 };
