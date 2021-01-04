@@ -88,29 +88,29 @@ func (s *OrangeConnexScraper) jsGetTimeline(sel string) (js string) {
 
 // GetData func
 func (s *OrangeConnexScraper) GetData(trackingNumber string) (*parcels.ParcelData, bool) {
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		fmt.Printf("Panic in OrangeConnexScraper, GetData %s", r)
-	// 	}
-	// }()
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Panic in OrangeConnexScraper, GetData %s", r)
+		}
+	}()
 
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.Flag("headless", false),
+		chromedp.Flag("headless", true),
 		// chromedp.Flag("disable-gpu", false),
 		// chromedp.Flag("enable-automation", false),
 		// chromedp.Flag("disable-extensions", false),
 	)
 
-	allocCtx, _ := chromedp.NewExecAllocator(context.Background(), opts...)
-	// defer cancel()
+	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
+	defer cancel()
 
 	// create chrome instance
-	ctx, _ := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
-	// defer cancel()
+	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
+	defer cancel()
 
 	// create a timeout
-	ctx, _ = context.WithTimeout(ctx, 50*time.Second)
-	// defer cancel()
+	ctx, cancel = context.WithTimeout(ctx, 50*time.Second)
+	defer cancel()
 
 	urlString := fmt.Sprintf(`https://www.orangeconnex.com/tracking?language=en&trackingnumber=%s`, trackingNumber)
 
