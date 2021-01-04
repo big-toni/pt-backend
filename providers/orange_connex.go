@@ -33,26 +33,38 @@ func NewOrangeConnexScraper() *OrangeConnexScraper {
 func (s *OrangeConnexScraper) jsGetDetails() (js string) {
 	const funcJS = `function getDetails() {
 				var x = {};
-				var header = document.body.querySelector("div[class='el-collapse-item__header']");
+				var header = document.body.querySelector("div[class=el-collapse-item__header]");
 
-				items = header.querySelectorAll("p");
-				var details = {};
-				details.description = items[1].textContent.trim();
-				details.date = items[2] && items[2].textContent.trim();
-				details.location = items[3] && items[3].textContent.trim();
-
-				x.details = details;
+				items = header && header.querySelectorAll("td[data-v-41aef011]");
 
 				var from = {}
-				from.city = [...header.querySelectorAll("ul[class='fl']>li>b")].reduce((sum, x) => sum.concat(x.textContent.trim(), ", ") ,"");
-				const foundPostCode1 = header.querySelector("li[class='fl']>b[class='postCode']")
-				from.postCode = foundPostCode1 && foundPostCode1.textContent.trim();
-				x.from  = from;
+				from.country = items[1]
+				.textContent
+				.trim();
+
+				from.city = items[2]
+				.textContent
+				.trim();
+
+				from.zip = items[3]
+				.textContent
+				.trim();
+
+				x.from = from;
 
 				var to = {}
-				to.city = [...header.querySelectorAll("ul[class='fr']>li>b")].reduce((sum, x) => sum.concat(x.textContent.trim(), ", ") ,"");
-				const foundPostCode2 = header.querySelector("ul[class='fr']>li>b[class='postCode']")
-				to.postCode = foundPostCode2 && foundPostCode2.textContent.trim();
+				to.country = items[5]
+				.textContent
+				.trim();
+
+				to.city = items[6]
+				.textContent
+				.trim();
+
+				to.zip = items[7]
+				.textContent
+				.trim();
+
 				x.to = to;
 
 				return x
@@ -76,26 +88,33 @@ func (s *OrangeConnexScraper) jsGetTimeline(sel string) (js string) {
 
 // GetData func
 func (s *OrangeConnexScraper) GetData(trackingNumber string) (*parcels.ParcelData, bool) {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Panic in OrangeConnexScraper, GetData %s", r)
-		}
-	}()
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		fmt.Printf("Panic in OrangeConnexScraper, GetData %s", r)
+	// 	}
+	// }()
+
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.Flag("headless", false),
+		// chromedp.Flag("disable-gpu", false),
+		// chromedp.Flag("enable-automation", false),
+		// chromedp.Flag("disable-extensions", false),
+	)
+
+	allocCtx, _ := chromedp.NewExecAllocator(context.Background(), opts...)
+	// defer cancel()
 
 	// create chrome instance
-	ctx, cancel := chromedp.NewContext(
-		context.Background(),
-		chromedp.WithLogf(log.Printf),
-	)
-	defer cancel()
+	ctx, _ := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
+	// defer cancel()
 
 	// create a timeout
-	ctx, cancel = context.WithTimeout(ctx, 50*time.Second)
-	defer cancel()
+	ctx, _ = context.WithTimeout(ctx, 50*time.Second)
+	// defer cancel()
 
 	urlString := fmt.Sprintf(`https://www.orangeconnex.com/tracking?language=en&trackingnumber=%s`, trackingNumber)
 
-	timelineEvaluate := s.jsGetTimeline("ul[class='timeline']")
+	timelineEvaluate := s.jsGetTimeline("placeholder")
 
 	details := s.jsGetDetails()
 
@@ -106,12 +125,10 @@ func (s *OrangeConnexScraper) GetData(trackingNumber string) (*parcels.ParcelDat
 
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(urlString),
-		// chromedp.WaitVisible("ul[data-v-41aef011] > h3[data-v-41aef011] > div"),
-		chromedp.WaitVisible("div > div[data-v-41aef011][class='part1']"),
+		chromedp.Click("div[class='el-collapse-item__header'][role='button']"),
 		chromedp.Evaluate(timelineEvaluate, &timeline),
 		chromedp.Evaluate(details, &parcelData),
 	)
-
 	parcelData.Timeline = s.getTimelineData(timeline)
 
 	if err != nil {
@@ -145,8 +162,8 @@ func (s *OrangeConnexScraper) getTimelineData(ocTimeline []orangeConnexTimelineE
 		entry.Location = item.Location
 		entry.Status = item.Status
 
-		layout := "Jan 02,2006T15:04:05"
-		t, err := time.Parse(layout, item.Date+"T"+item.Time)
+		layout := "2006/01/02 15:04"
+		t, err := time.Parse(layout, item.Time)
 		entry.Time = t
 		if err != nil {
 			log.Println(err)
