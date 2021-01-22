@@ -110,7 +110,7 @@ func (s *OrangeConnexScraper) GetData(trackingNumber string) (*parcels.ParcelDat
 	defer cancel()
 
 	// create a timeout
-	ctx, cancel = context.WithTimeout(ctx, 50*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	urlString := fmt.Sprintf(`https://www.orangeconnex.com/tracking?language=en&trackingnumber=%s`, trackingNumber)
