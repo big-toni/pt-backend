@@ -42,6 +42,7 @@ func (s *PostaHrScraper) GetData(trackingNumber string) (*parcels.ParcelData, bo
 	}()
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.Flag("headless", true),
+		chromedp.Flag("no-sandbox", true),
 		// chromedp.Flag("disable-gpu", false),
 		// chromedp.Flag("enable-automation", false),
 		// chromedp.Flag("disable-extensions", false),

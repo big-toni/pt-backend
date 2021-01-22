@@ -96,6 +96,7 @@ func (s *OrangeConnexScraper) GetData(trackingNumber string) (*parcels.ParcelDat
 
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.Flag("headless", true),
+		chromedp.Flag("no-sandbox", true),
 		// chromedp.Flag("disable-gpu", false),
 		// chromedp.Flag("enable-automation", false),
 		// chromedp.Flag("disable-extensions", false),
@@ -125,6 +126,7 @@ func (s *OrangeConnexScraper) GetData(trackingNumber string) (*parcels.ParcelDat
 
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(urlString),
+		chromedp.WaitVisible("div[class='el-collapse-item__header'][role='button']"),
 		chromedp.Click("div[class='el-collapse-item__header'][role='button']"),
 		chromedp.Evaluate(timelineEvaluate, &timeline),
 		chromedp.Evaluate(details, &parcelData),
