@@ -51,6 +51,7 @@ func (s *DhlHrScraper) GetData(trackingNumber string) (*parcels.ParcelData, bool
 	}()
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.Flag("headless", true), ///- not working without head
+		chromedp.Flag("no-sandbox", true),
 		// chromedp.Flag("disable-gpu", false),
 		// chromedp.Flag("enable-automation", false),
 		// chromedp.Flag("disable-extensions", false),
