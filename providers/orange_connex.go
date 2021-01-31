@@ -135,6 +135,7 @@ func (s *OrangeConnexScraper) GetData(trackingNumber string) (*parcels.ParcelDat
 
 	if err != nil {
 		// log.Fatal(err)
+		log.Println("OrangeConnex GetData", err)
 		return nil, true
 	}
 

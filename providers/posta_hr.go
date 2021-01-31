@@ -56,7 +56,7 @@ func (s *PostaHrScraper) GetData(trackingNumber string) (*parcels.ParcelData, bo
 	defer cancel()
 
 	// create a timeout
-	ctx, cancel = context.WithTimeout(ctx, 20*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	urlString := fmt.Sprintf(`https://posiljka.posta.hr/Tracking/Info`)
@@ -94,7 +94,8 @@ func (s *PostaHrScraper) GetData(trackingNumber string) (*parcels.ParcelData, bo
 	}
 
 	if err != nil {
-		log.Fatal(err)
+		// log.Fatal(err)
+		log.Println("PostaHr GetData", err)
 		return nil, true
 	}
 
