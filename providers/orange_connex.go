@@ -134,7 +134,8 @@ func (s *OrangeConnexScraper) GetData(trackingNumber string) (*parcels.ParcelDat
 	parcelData.Timeline = s.getTimelineData(timeline)
 
 	if err != nil {
-		log.Fatal(err)
+		// log.Fatal(err)
+		log.Println("OrangeConnex GetData", err)
 		return nil, true
 	}
 

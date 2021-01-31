@@ -129,7 +129,8 @@ func (s *GlobalCanaioScraper) getTimelineData(gcTimeline []gcTimelineEntry) *par
 		t, err := time.Parse(layout, item.Time)
 		entry.Time = t
 		if err != nil {
-			log.Println(err)
+			// log.Println(err)
+			log.Println("GlobalCanaio getTimelineData", err)
 		}
 		parsedTimeline = append(parsedTimeline, entry)
 	}
