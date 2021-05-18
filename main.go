@@ -50,22 +50,19 @@ func server() {
 	auth.HandleFunc("/reset/{key}/", routes.Reset).Methods("GET", "POST")
 	auth.HandleFunc("/forgot", routes.Forgot).Methods("POST")
 
-	users := api.PathPrefix("/users").Subrouter()
-	users.Use(authMiddleware)
-
-	account := users.PathPrefix("/me").Subrouter()
-	account.HandleFunc("/data", routes.Account).Methods("GET")
+	account := api.PathPrefix("/me").Subrouter()
+	account.HandleFunc("/", routes.Account).Methods("GET")
 
 	parcels := api.PathPrefix("/parcels").Subrouter()
 	parcels.Use(authMiddleware)
-
-	parcels.HandleFunc("/data/{trackingNumber:[a-zA-Z0-9]+}/", routes.Parcel).Methods("GET")
-	parcels.HandleFunc("/courier/{trackingNumber:[a-zA-Z0-9]+}/", routes.Courier).Methods("GET")
 
 	parcels.HandleFunc("/", routes.AddParcels).Methods("POST")
 	parcels.HandleFunc("/", routes.GetParcels).Methods("GET")
 	parcels.HandleFunc("/", routes.DeleteParcels).Methods("DELETE")
 	parcels.HandleFunc("/", routes.EditParcel).Methods("PATCH")
+
+	parcels.HandleFunc("/data/{trackingNumber:[a-zA-Z0-9]+}/", routes.Parcel).Methods("GET")
+	parcels.HandleFunc("/courier/{trackingNumber:[a-zA-Z0-9]+}/", routes.Courier).Methods("GET")
 
 	port := os.Getenv("PORT")
 
