@@ -45,10 +45,10 @@ func server() {
 
 	auth := api.PathPrefix("/auth").Subrouter()
 	auth.Use(loggingMiddleware)
-	auth.HandleFunc("/login", routes.Login).Methods("POST")
-	auth.HandleFunc("/signup", routes.SignUp).Methods("POST")
+	auth.HandleFunc("/login/", routes.Login).Methods("POST")
+	auth.HandleFunc("/signup/", routes.SignUp).Methods("POST")
 	auth.HandleFunc("/reset/{key}/", routes.Reset).Methods("GET", "POST")
-	auth.HandleFunc("/forgot", routes.Forgot).Methods("POST")
+	auth.HandleFunc("/forgot/", routes.Forgot).Methods("POST")
 
 	account := api.PathPrefix("/me").Subrouter()
 	account.HandleFunc("/", routes.Account).Methods("GET")
