@@ -41,7 +41,7 @@ func server() {
 	// web := router.PathPrefix("/").Subrouter()
 	// web.HandleFunc("/", routes.Root).Methods("GET")
 	// admin := router.PathPrefix("/admin").Subrouter()
-	api := router.PathPrefix("/api").Subrouter()
+	api := router.PathPrefix("/api/v1").Subrouter()
 
 	auth := api.PathPrefix("/auth").Subrouter()
 	auth.Use(loggingMiddleware)
@@ -53,7 +53,7 @@ func server() {
 	users := api.PathPrefix("/users").Subrouter()
 	users.Use(authMiddleware)
 
-	account := users.PathPrefix("/account").Subrouter()
+	account := users.PathPrefix("/me").Subrouter()
 	account.HandleFunc("/data", routes.Account).Methods("GET")
 
 	parcels := api.PathPrefix("/parcels").Subrouter()
