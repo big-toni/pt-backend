@@ -8,10 +8,10 @@ import (
 	"os"
 	"strings"
 
-	"pt-server/routes"
-	"pt-server/services"
+	"pt-backend/routes"
+	"pt-backend/services"
 
-	"pt-server/database"
+	"pt-backend/database"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"

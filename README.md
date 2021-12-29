@@ -1,5 +1,4 @@
-
-# pt-server
+# pt-backend
 
 Parcel tracking server deployed to Heroku.
 
@@ -38,13 +37,11 @@ or
 
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
-
 ## Documentation
 
 For more information about using Go on Heroku, see these Dev Center articles:
 
 - [Go on Heroku](https://devcenter.heroku.com/categories/go)
-
 
 ## Alternative Debug with VSCode and Delve
 
@@ -52,15 +49,15 @@ For more information about using Go on Heroku, see these Dev Center articles:
 2. Run server with: devmarks serve
 3. In another terminal run delve in headless mode: dlv attach --headless --listen=:2345 --api-version=2 $(pgrep devmarks)
 4. Use configuration:
-        {
-            "name": "Connect to Delve",
-            "type": "go",
-            "request": "attach",
-            "remotePath": "${workspaceRoot}",
-            "mode": "remote",
-            "port": 2345,
-            "host": "127.0.0.1",
-            "apiVersion": 2,
-            "showLog": true,
-            "trace": "verbose"
-        }
+   {
+   "name": "Connect to Delve",
+   "type": "go",
+   "request": "attach",
+   "remotePath": "${workspaceRoot}",
+   "mode": "remote",
+   "port": 2345,
+   "host": "127.0.0.1",
+   "apiVersion": 2,
+   "showLog": true,
+   "trace": "verbose"
+   }

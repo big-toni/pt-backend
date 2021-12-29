@@ -1,4 +1,4 @@
-module pt-server
+module pt-backend
 
 go 1.17
 

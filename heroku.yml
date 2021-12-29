@@ -3,4 +3,4 @@ build:
     - go
 
 run:
-  web: pmgo start ./ pt-server
+  web: pmgo start ./ pt-backend

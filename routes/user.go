@@ -11,8 +11,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"pt-server/database"
-	"pt-server/services"
+	"pt-backend/database"
+	"pt-backend/services"
 
 	"github.com/gorilla/mux"
 )

@@ -11,7 +11,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	"pt-server/database/models"
+	"pt-backend/database/models"
 )
 
 // TokenDAO interface

@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 	"log"
-	"pt-server/database/models"
-	"pt-server/parcels"
-	"pt-server/providers"
+	"pt-backend/database/models"
+	"pt-backend/parcels"
+	"pt-backend/providers"
 	"sync"
 	"time"
 
