@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"pt-server/database"
-	"pt-server/database/models"
-	"pt-server/services"
+	"pt-backend/database"
+	"pt-backend/database/models"
+	"pt-backend/services"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"

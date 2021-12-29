@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"pt-server/parcels"
+	"pt-backend/parcels"
 	"regexp"
 	"time"
 

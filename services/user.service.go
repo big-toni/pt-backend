@@ -8,8 +8,8 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	"pt-server/database"
-	"pt-server/database/models"
+	"pt-backend/database"
+	"pt-backend/database/models"
 )
 
 // UserDAO interface

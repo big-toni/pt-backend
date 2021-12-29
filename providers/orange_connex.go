@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"pt-server/parcels"
+	"pt-backend/parcels"
 	"strings"
 	"time"
 

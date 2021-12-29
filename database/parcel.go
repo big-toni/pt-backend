@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"pt-server/database/models"
+	"pt-backend/database/models"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
