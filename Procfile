@@ -1,2 +1,2 @@
-web: pt-server
-clock: pt-server "job1"
+web: pt-backend
+clock: pt-backend "job1"
