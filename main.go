@@ -26,6 +26,14 @@ func init() {
 }
 
 func main() {
+	if len(os.Args) >= 2 && os.Args[1] == "job1" {
+		log.Println("Executing:" + os.Args[1])
+	} else {
+		server()
+	}
+}
+
+func server() {
 	router := mux.NewRouter()
 
 	router.Use(loggingMiddleware)
