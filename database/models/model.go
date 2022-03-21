@@ -27,7 +27,7 @@ type Token struct {
 type User struct {
 	Model        `bson:",inline"`
 	Email        string `json:"email" bson:"email"`
-	PasswordHash string `json:"passwordHash" bson:"password_hash"`
+	PasswordHash string `json:"-" bson:"password_hash"`
 	// PrivateParcels []PrivateParcel `json:"privateParcels" bson:"private_parcels"`
 }
 
