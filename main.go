@@ -38,8 +38,8 @@ func server() {
 
 	router.Use(loggingMiddleware)
 
-	// web := router.PathPrefix("/").Subrouter()
-	// web.HandleFunc("/", routes.Root).Methods("GET")
+	web := router.PathPrefix("/").Subrouter()
+	web.HandleFunc("/", routes.Root).Methods("GET")
 	// admin := router.PathPrefix("/admin").Subrouter()
 	api := router.PathPrefix("/api/v1").Subrouter()
 
