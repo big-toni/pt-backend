@@ -1,11 +1,16 @@
 # pt-backend
 
-Parcel tracking service.
+Parcel tracking app.
+Project created for practicing programming skills with Go.
 
+## NOTE:
 
-# TODO: ...
+- using gorilla/mux HTTP request multiplexer request router and dispatcher for matching incoming requests to their respective handler.
+- using chromedp to drive browser and scrape web for parcel number info
+- using DAO pattern to separate the application/business layer from the persistence layer
+- using go.mongodb.org/mongo-driver, MongoDB supported driver for Go
 
-## Alternative Debug with VSCode and Delve
+### Alternative Debug with VSCode and Delve
 
 1. Build code with: go build -o $GOPATH/bin/devmarks -i
 2. Run server with: devmarks serve
