@@ -70,8 +70,7 @@ func server() {
 		log.Fatal("$PORT must be set")
 	}
 
-	http.ListenAndServe(":"+port, router)
-
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
