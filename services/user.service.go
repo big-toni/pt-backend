@@ -42,7 +42,7 @@ func (s *UserService) AuthenticateUser(tknStr string) (*models.User, error) {
 	valid, _ := ts.ValidateToken(tknStr)
 
 	if !valid {
-		return nil, errors.New("Invalid signing algorithm")
+		return nil, errors.New("invalid signing algorithm")
 	}
 
 	// TODO: find better way
@@ -51,14 +51,14 @@ func (s *UserService) AuthenticateUser(tknStr string) (*models.User, error) {
 
 	if userID == nil {
 		log.Println("No token in database: ", tknStr)
-		return nil, errors.New("No token in database")
+		return nil, errors.New("no token in database")
 	}
 
 	user := s.dao.GetUserByID(*userID)
 
-	if &user == nil {
-		log.Println("No user with token: ", tknStr)
-		return nil, errors.New("No user with token")
+	if user == nil {
+		log.Println("no user with token: ", tknStr)
+		return nil, errors.New("no user with token")
 	}
 
 	return user, nil
