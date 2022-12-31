@@ -115,9 +115,9 @@ func (s *GlobalCanaioScraper) GetData(trackingNumber string) (*parcels.ParcelDat
 
 	urlString := fmt.Sprintf(`http://global.cainiao.com/detail.htm?mailNoList=%s`, trackingNumber)
 
-	timelineEvaluate := s.jsGetTimeline("placeholder")
+	timelineEvaluate := s.jsGetTimeline("div[class='TrackingDetail--shipSteps--kvxVRO1']")
 
-	details := s.jsGetDetails()
+	// details := s.jsGetDetails()
 
 	var timeline []gcTimelineEntry
 	parcelData := parcels.ParcelData{
@@ -126,10 +126,9 @@ func (s *GlobalCanaioScraper) GetData(trackingNumber string) (*parcels.ParcelDat
 
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(urlString),
-		chromedp.WaitVisible("div[class='el-collapse-item__header'][role='button']"),
-		chromedp.Click("div[class='el-collapse-item__header'][role='button']"),
+		chromedp.WaitVisible("div[class='TrackingDetail--shipSteps--kvxVRO1"),
 		chromedp.Evaluate(timelineEvaluate, &timeline),
-		chromedp.Evaluate(details, &parcelData),
+		// chromedp.Evaluate(details, &parcelData),
 	)
 	parcelData.Timeline = s.getTimelineData(timeline)
 
@@ -147,16 +146,16 @@ func (s *GlobalCanaioScraper) GetData(trackingNumber string) (*parcels.ParcelDat
 	return &parcelData, true
 }
 
-func (s *GlobalCanaioScraper) getTimelineData(ocTimeline []gcTimelineEntry) *parcels.Timeline {
+func (s *GlobalCanaioScraper) getTimelineData(gcTimeline []gcTimelineEntry) *parcels.Timeline {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Printf("Panic in GlobalCanaioScraper, getTimelineData %s", r)
 		}
 	}()
 	var parsedTimeline parcels.Timeline
-	timelineLen := len(ocTimeline)
+	timelineLen := len(gcTimeline)
 
-	for i, item := range ocTimeline {
+	for i, item := range gcTimeline {
 		entry := parcels.TimelineEntry{}
 
 		entry.Description = item.Description
@@ -165,7 +164,9 @@ func (s *GlobalCanaioScraper) getTimelineData(ocTimeline []gcTimelineEntry) *par
 		entry.Location = item.Location
 		entry.Status = item.Status
 
-		layout := "2006/01/02 15:04"
+		// 2022-10-10 16:20:20 GMT+8'
+
+		layout := "2006-01-02 15:04:05 MST"
 		t, err := time.Parse(layout, item.Time)
 		entry.Time = t
 		if err != nil {
