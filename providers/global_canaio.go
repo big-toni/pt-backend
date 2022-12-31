@@ -1,18 +1,15 @@
 package providers
 
 import (
-	"encoding/json"
-	"errors"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"pt-backend/parcels"
-	"regexp"
+	"strings"
 	"time"
 
-	"github.com/mitchellh/mapstructure"
-	"golang.org/x/net/html"
+	"github.com/chromedp/chromedp"
 )
 
 type gcTimelineEntry struct {
@@ -33,86 +30,128 @@ func NewGlobalCanaioScraper() *GlobalCanaioScraper {
 	return &GlobalCanaioScraper{}
 }
 
-// GetData func
-func (s *GlobalCanaioScraper) GetData(trackingNumber string) (*parcels.ParcelData, error) {
-	urlString := fmt.Sprintf("http://global.cainiao.com/detail.htm?mailNoList=%s", trackingNumber)
-	resp, err := http.Get(urlString)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	result := string(body)
+func (s *GlobalCanaioScraper) jsGetDetails() (js string) {
+	const funcJS = `function getDetails() {
+				var x = {};
+				var header = document.body.querySelector("div[class=el-collapse-item__header]");
 
-	re := regexp.MustCompile(`id="waybill_list_val_box">(.*)</textarea>`)
-	submatchall := re.FindAllStringSubmatch(result, -1)
-	for _, element := range submatchall {
-		unescaped := html.UnescapeString(element[1])
+				items = header && header.querySelectorAll("td[data-v-41aef011]");
 
-		// Declared an empty interface
-		var result map[string]interface{}
+				var from = {}
+				from.country = items[1]
+				.textContent
+				.trim();
 
-		// Unmarshal or Decode the JSON to the interface.
-		json.Unmarshal([]byte(unescaped), &result)
+				from.city = items[2]
+				.textContent
+				.trim();
 
-		data := result["data"].([]interface{})[0]
+				from.zip = items[3]
+				.textContent
+				.trim();
 
-		errCode := data.(map[string]interface{})["errorCode"]
-		success := data.(map[string]interface{})["success"]
-		if errCode == "RESULT_EMPTY" || success == false {
-			return nil, errors.New("RESULT_EMPTY")
-		}
+				x.from = from;
 
-		data2, _ := json.Marshal(data)
+				var to = {}
+				to.country = items[5]
+				.textContent
+				.trim();
 
-		parcelDataPointer, _ := s.mapData(data2)
+				to.city = items[6]
+				.textContent
+				.trim();
 
-		return parcelDataPointer, nil
-	}
+				to.zip = items[7]
+				.textContent
+				.trim();
 
-	return nil, errors.New("Error in GetGlobalCanaioData func")
+				x.to = to;
+
+				return x
+			 };`
+
+	invokeFuncJS := `var a = getDetails(); a;`
+	return strings.Join([]string{funcJS, invokeFuncJS}, " ")
 }
 
-func (s *GlobalCanaioScraper) mapData(data []byte) (parcelData *parcels.ParcelData, err error) {
+func (s *GlobalCanaioScraper) jsGetTimeline(sel string) (js string) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("Panic in global_canaio mapData %s", r)
-			parcelData = nil
+			fmt.Printf("Panic in GlobalCanaioScraper, jsGetTimeline %s", r)
+		}
+	}()
+	buf, _ := ioutil.ReadFile("helpers/globalCanaio.js")
+	funcJS := string(buf)
+	invokeFuncJS := `var a = getItems("` + sel + `"); a;`
+	return strings.Join([]string{funcJS, invokeFuncJS}, " ")
+}
+
+// GetData func
+func (s *GlobalCanaioScraper) GetData(trackingNumber string) (*parcels.ParcelData, bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Panic in GlobalCanaioScraper, GetData %s", r)
 		}
 	}()
 
-	var result map[string]interface{}
-	json.Unmarshal(data, &result)
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.Flag("headless", true),
+		chromedp.Flag("no-sandbox", true),
+		// chromedp.Flag("disable-gpu", false),
+		// chromedp.Flag("enable-automation", false),
+		// chromedp.Flag("disable-extensions", false),
+	)
+
+	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
+	defer cancel()
+
+	// create chrome instance
+	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
+	defer cancel()
+
+	// create a timeout
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	urlString := fmt.Sprintf(`http://global.cainiao.com/detail.htm?mailNoList=%s`, trackingNumber)
+
+	timelineEvaluate := s.jsGetTimeline("div[class='TrackingDetail--shipSteps--kvxVRO1']")
+
+	// details := s.jsGetDetails()
 
 	var timeline []gcTimelineEntry
-
-	pd := parcels.ParcelData{
+	parcelData := parcels.ParcelData{
 		Provider: "GlobalCanaio",
 	}
-	pd.To = &parcels.Address{Country: result["destCountry"].(string)}
-	pd.LastUpdated = result["cachedTime"].(string)
-	pd.ShippingDaysCount = result["shippingTime"].(float64)
-	pd.From = &parcels.Address{Country: result["originCountry"].(string)}
-	pd.Status = result["status"].(string)
-	pd.StatusDescription = result["statusDesc"].(string)
-	mapstructure.Decode(result["section2"].(map[string]interface{})["detailList"], &timeline)
-	pd.TrackingNumber = result["mailNo"].(string)
 
-	pd.Timeline = s.getTimelineData(timeline)
+	err := chromedp.Run(ctx,
+		chromedp.Navigate(urlString),
+		chromedp.WaitVisible("div[class='TrackingDetail--shipSteps--kvxVRO1"),
+		chromedp.Evaluate(timelineEvaluate, &timeline),
+		// chromedp.Evaluate(details, &parcelData),
+	)
+	parcelData.Timeline = s.getTimelineData(timeline)
 
-	historyLen := len(*pd.Timeline)
-
-	//Add indexes in reversed order
-	for i := range *pd.Timeline {
-		p := &pd
-		t := *p.Timeline
-		t[historyLen-1-i].Index = int8(i)
+	if err != nil {
+		// log.Fatal(err)
+		log.Println("GlobalCanaio GetData", err)
+		return nil, true
 	}
 
-	return &pd, err
+	// TODO: need to refactor
+	if len(*parcelData.Timeline) == 0 {
+		return nil, true
+	}
+
+	return &parcelData, true
 }
 
 func (s *GlobalCanaioScraper) getTimelineData(gcTimeline []gcTimelineEntry) *parcels.Timeline {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Panic in GlobalCanaioScraper, getTimelineData %s", r)
+		}
+	}()
 	var parsedTimeline parcels.Timeline
 	timelineLen := len(gcTimeline)
 
@@ -125,14 +164,16 @@ func (s *GlobalCanaioScraper) getTimelineData(gcTimeline []gcTimelineEntry) *par
 		entry.Location = item.Location
 		entry.Status = item.Status
 
-		layout := "2006-01-02 15:04:05"
+		// 2022-10-10 16:20:20 GMT+8'
+
+		layout := "2006-01-02 15:04:05 MST"
 		t, err := time.Parse(layout, item.Time)
 		entry.Time = t
 		if err != nil {
-			// log.Println(err)
-			log.Println("GlobalCanaio getTimelineData", err)
+			log.Println(err)
 		}
 		parsedTimeline = append(parsedTimeline, entry)
 	}
+
 	return &parsedTimeline
 }

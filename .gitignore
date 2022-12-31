@@ -18,3 +18,8 @@
 # .vscode
 __debug_bin
 *.env
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

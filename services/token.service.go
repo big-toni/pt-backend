@@ -128,7 +128,7 @@ func (s *TokenService) ValidateToken(tknStr string) (bool, *jwt.StandardClaims) 
 	jwtSecret := os.Getenv("JWT_SECRET")
 	token, err := jwt.ParseWithClaims(tknStr, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if jwt.SigningMethodHS256 != token.Method {
-			return nil, errors.New("Invalid signing algorithm")
+			return nil, errors.New("invalid signing algorithm")
 		}
 		return []byte(jwtSecret), nil
 	})
