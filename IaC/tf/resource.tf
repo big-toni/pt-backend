@@ -141,3 +141,11 @@ resource "aws_launch_template" "awsebec2_launch_template" {
 
 resource "aws_cloudformation_stack" "awseb_beanstalk_metadata" {}
 
+
+
+
+# added by me: 
+resource "aws_instance" "webserver" {
+  ami = "ami-00dbdab76ff934a2e" # golang image provided by default on EB
+  instance_type = "t2.micro"
+}
