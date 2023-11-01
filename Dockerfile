@@ -20,6 +20,9 @@ FROM golang:1.19
 ENV gopath /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
+RUN apk update && apk add chromium
+
+
 # install google chrome
 # ENV CHROME_VERSION "google-chrome-stable"
 # RUN sed -i -- 's&deb http://deb.debian.org/debian jessie-updates main&#deb http://deb.debian.org/debian jessie-updates main&g' /etc/apt/sources.list \
@@ -33,27 +36,27 @@ ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
 # Install Chromium
 # Yes, including the Google API Keys sucks but even debian does the same: https://packages.debian.org/stretch/amd64/chromium/filelist
-RUN apt-get update && apt-get install -y \
-      chromium \
-      chromium-l10n \
-      fonts-liberation \
-      fonts-roboto \
-      hicolor-icon-theme \
-      libcanberra-gtk-module \
-      libexif-dev \
-      libgl1-mesa-dri \
-      libgl1-mesa-glx \
-      libpangox-1.0-0 \
-      libv4l-0 \
-      fonts-symbola \
-      --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /etc/chromium.d/ \
-    && /bin/echo -e 'export GOOGLE_API_KEY="AIzaSyCkfPOPZXDKNn8hhgu3JrA62wIgC93d44k"\nexport GOOGLE_DEFAULT_CLIENT_ID="811574891467.apps.googleusercontent.com"\nexport GOOGLE_DEFAULT_CLIENT_SECRET="kdloedMFGdGla2P1zacGjAQh"' > /etc/chromium.d/googleapikeys
+# RUN apt-get update && apt-get install -y \
+#       chromium \
+#       chromium-l10n \
+#       fonts-liberation \
+#       fonts-roboto \
+#       hicolor-icon-theme \
+#       libcanberra-gtk-module \
+#       libexif-dev \
+#       libgl1-mesa-dri \
+#       libgl1-mesa-glx \
+#       libpangox-1.0-0 \
+#       libv4l-0 \
+#       fonts-symbola \
+#       --no-install-recommends \
+#     && rm -rf /var/lib/apt/lists/* \
+#     && mkdir -p /etc/chromium.d/ \
+#     && /bin/echo -e 'export GOOGLE_API_KEY="AIzaSyCkfPOPZXDKNn8hhgu3JrA62wIgC93d44k"\nexport GOOGLE_DEFAULT_CLIENT_ID="811574891467.apps.googleusercontent.com"\nexport GOOGLE_DEFAULT_CLIENT_SECRET="kdloedMFGdGla2P1zacGjAQh"' > /etc/chromium.d/googleapikeys
 
-# Add chromium user
-RUN groupadd -r chromium && useradd -r -g chromium -G audio,video chromium \
-    && mkdir -p /home/chromium/Downloads && chown -R chromium:chromium /home/chromium
+# # Add chromium user
+# RUN groupadd -r chromium && useradd -r -g chromium -G audio,video chromium \
+#     && mkdir -p /home/chromium/Downloads && chown -R chromium:chromium /home/chromium
 
 # Run as non privileged user
 # USER chromium
